@@ -12,7 +12,7 @@ The two take the same arguments except for keyword names, which these helpers tr
 """
 
 import asyncio
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Callable, Dict, List, Optional, Sequence
 
 from pylabrobot.hamilton.star import STARlet
 from pylabrobot.legacy.liquid_handling import LiquidHandler as LegacyLiquidHandler
@@ -118,6 +118,32 @@ async def dispense(dev: Any, containers: Sequence[Any], vols: Sequence[float], u
     await _paced(call)
 
 
+# Who does a manual step: a function of (instruction) that returns once the operator has done it, or None. With none
+# (simulation, a rehearsal) the step is logged and the run goes on; a run on the robot sets one that asks the operator.
+MANUAL_HANDLER: Optional[Callable[[str], Any]] = None
+MANUAL_LOG: List[str] = []  # every manual step the last run reached, in order
+
+
+def set_manual_handler(handler: Optional[Callable[[str], Any]]) -> None:
+    global MANUAL_HANDLER
+    MANUAL_HANDLER = handler
+
+
+async def manual_step(dev: Any, instruction: str, empties: Sequence[Any] = ()) -> None:
+    """A step the operator does by hand (the robot cannot): asked through the handler, then the wells it empties (a
+    spin column's flow-through discarded) hold 0 uL."""
+    MANUAL_LOG.append(instruction)
+    if MANUAL_HANDLER is None:
+        print(f"[manual step] {instruction}")
+    else:
+        done = MANUAL_HANDLER(instruction)
+        if asyncio.iscoroutine(done):
+            await done
+    for well in empties:
+        if not well.tracker.is_disabled:
+            well.tracker.set_volume(0)
+
+
 def draw_height(deck: Any) -> None:
     """The 3D view frames the device's box. The STAR's working envelope is 900 mm tall, but the top of the X-arm
     rides above it (334.7 mm of channel travel plus 140 mm of arm): that is the height the view should show.
@@ -128,4 +154,4 @@ def draw_height(deck: Any) -> None:
 def compiled_names() -> Dict[str, Any]:
     """What a compiled protocol's namespace needs from this module."""
     return {"tips_on": tips_on, "tips_off": tips_off, "aspirate": aspirate, "dispense": dispense,
-            "return_tips": return_tips}
+            "return_tips": return_tips, "manual_step": manual_step}

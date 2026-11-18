@@ -62,8 +62,11 @@ From the report, briefly and in this order:
    one from `review.reagents` (load, drawn, left over, capacity). Mention any `flags`.
 4. **Labware and deck** (`review.labware`): what was chosen and where it sits, and anything the operator has to place
    before the run.
-5. **Suggestions** (`suggestions`): numbered, title then detail. They are improvements, not errors.
-6. **AHC** (`ahc`): whether the whole deck is on the AHC layout (`not_on_layout` empty), and where AHC's labware model
+5. **Manual steps** (`manual_steps`): the steps the operator does by hand because the robot cannot (centrifuge,
+   vortex, incubate off deck), each with its instruction, labware, time and the wells it empties. Ask the scientist
+   to check each instruction: the robot waits for it during the run, so it must be exact.
+6. **Suggestions** (`suggestions`): numbered, title then detail. They are improvements, not errors.
+7. **AHC** (`ahc`): whether the whole deck is on the AHC layout (`not_on_layout` empty), and where AHC's labware model
    differs from VENUS (`differs_from_venus`).
 
 To let them watch the assay in PyLabRobot's 3D viewer, run it in the background and give them the address it prints:
@@ -80,7 +83,10 @@ skill. Simulate mode only: never a real robot in this step.
 1. Copy `<files.ahc_layout>` into the task folder's `.ahc/layouts/` (the precheck folder has its own `.ahc/`).
 2. Set up a simulated STARlet (`configure_devices`, simulation), and have the scientist confirm the configuration.
 3. Load the layout, run the deck check, then the protocol's steps from `<files.ir>` as AHC calls, one plate column at
-   a time, verifying each stage the lab-hardware skill names.
+   a time, verifying each stage the lab-hardware skill names. A `manual` step becomes
+   `request_manual_step(instruction, labware, duration_min, empties)` from its entry in the report's `manual_steps`
+   (`empties` there are already AHC targets), followed right away by `record_verdict` with its `ask_person`: the
+   scientist approves it once the step is done (in simulation they confirm they would do it).
 4. Report what AHC accepted and what it refused, with AHC's own messages. A refusal is a finding: say so, and do not
    edit the protocol to get past it. Send the refusal back to the scientist as a change to make (step 4).
 
@@ -101,7 +107,9 @@ changed, and repeat from step 2 (and step 3 when the change is to be tested) unt
 Tell the scientist the two ways to run the accepted protocol, and let them choose:
 
 - **precheck alone**: `python <files.script> --backend chatterbox` rehearses it; `python demo/server.py` in the
-  precheck folder, then the Execute page, walks through the deck checklist and runs it on the STARlet.
+  precheck folder, then the Execute page, walks through the deck checklist and runs it on the STARlet. A protocol
+  with manual steps cannot run from the Execute page (it cannot pause for the operator): `python <files.script>
+  --backend star` asks at the terminal before each one, or run it with AHC.
 - **With AHC** (optional: a supervised run with error recovery and an on-site deck check): copy `<files.ahc_layout>`
   into the task folder's `.ahc/layouts/` and follow the AHC `lab-hardware` skill, using the steps in `<files.ir>` as
   the plan.

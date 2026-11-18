@@ -38,6 +38,11 @@ STEP_SCHEMA = {
         "temperature_c": {"type": "number"},
         "speed_rpm": {"type": "number"},
         "waste": {"type": "string"},
+        "instruction": {"type": "string"},
+        "duration_min": {"type": "number"},
+        "empties": {"type": "array", "items": {"type": "object", "properties": {
+            "labware": {"type": "string"}, "column": {"type": "integer"},
+            "channels": {"type": "array", "items": {"type": "integer"}}}}},
         "description": {"type": "string"},
     },
     "required": ["action", "labware", "volume_ul", "channels", "description"],
@@ -109,6 +114,15 @@ afterwards, so do not include step numbers in new_steps.
 scientist loads into a container before the run.
 
 Reply with JSON: {"reasoning": "...", "edits": [...]}. Only use labware IDs listed in the deck.
+"""
+
+# Appended for protocols with manual steps (work the operator does by hand), so other prompts stay unchanged.
+MANUAL_PROMPT = """
+Manual steps ("action": "manual") are work the operator does by hand because the robot cannot (centrifuge, vortex, \
+incubate off deck, move labware), with an "instruction" and optional "empties" (plate wells the step leaves empty, \
+such as a spin column's discarded flow-through). Tips must be off before one. Repairs must keep every manual step \
+exactly as it is (same instruction, same order), and every plate well must hold the same volume and reagents when each \
+manual step comes as in the plan: never move a transfer across a manual step.
 """
 
 # Appended to SYSTEM_PROMPT only for protocols that use these actions, so prompts for
@@ -268,7 +282,8 @@ class HealResult:
 
 
 def _step_lines(protocol: Dict[str, Any]) -> List[str]:
-    keys = ("step", "action", "labware", "column", "volume_ul", "channels", "duration_s", "temperature_c", "speed_rpm")
+    keys = ("step", "action", "labware", "column", "volume_ul", "channels", "duration_s", "temperature_c", "speed_rpm",
+            "instruction", "duration_min", "empties")
     return [json.dumps({k: s[k] for k in keys if k in s}) for s in protocol["steps"]]
 
 
@@ -406,17 +421,33 @@ class SelfHealer:
                 key = (action, s.get("labware"), s.get("temperature_c"), s.get("speed_rpm"))
                 totals[key] = round(totals.get(key, 0.0) + float(s.get("duration_s", 0)), 3)
         where, _ = trace_mixtures(protocol, self.labware_kinds)
+        totals.update(self._wells_of(where, ("well",)))
+        # Manual steps: each one, in order, and what every plate well holds when it comes (a repair may not move a
+        # transfer across one, or drop, change or reorder one).
+        steps = protocol["steps"]
+        manual = [i for i, s in enumerate(steps) if s.get("action") == "manual"]
+        for k, i in enumerate(manual):
+            said = " ".join(str(steps[i].get("instruction", "")).split())[:60]
+            totals[("manual", k, said)] = 1.0
+            before, _ = trace_mixtures({**protocol, "steps": steps[:i]}, self.labware_kinds)
+            totals.update(self._wells_of(before, ("before", k, said)))
+        return totals
+
+    @staticmethod
+    def _wells_of(where: Dict[Any, Any], prefix: Tuple) -> Dict[Tuple, float]:
+        """Each plate well's volume and reagent amounts, keyed under `prefix`."""
+        out: Dict[Tuple, float] = {}
         for container, mixture in where.items():
             if not isinstance(container, tuple):
                 continue  # only plate wells are the experiment's result; sources and waste may differ with air
             labware, column, row = container
             volume = round(sum(mixture.values()), 3)
             if volume > 0:
-                totals[("well", labware, column, row, "volume")] = volume
+                out[prefix + (labware, column, row, "volume")] = volume
                 for reagent, ul in mixture.items():
                     if ul > 1e-9:
-                        totals[("well", labware, column, row, reagent)] = round(ul, 3)
-        return totals
+                        out[prefix + (labware, column, row, reagent)] = round(ul, 3)
+        return out
 
     @staticmethod
     def _intent_violations(baseline: Dict[Tuple, Any], candidate: Dict[Tuple, Any]) -> List[str]:
@@ -426,6 +457,17 @@ class SelfHealer:
         for key in sorted(set(baseline) | set(candidate), key=str):
             before, after = baseline.get(key, 0.0), candidate.get(key, 0.0)
             if abs(before - after) <= max(0.01, 0.001 * max(abs(before), abs(after))):
+                continue
+            if key[0] == "manual":
+                _, k, said = key
+                changed.append(f"manual step {k + 1} ('{said}') " + ("was removed or changed" if before else "was added"))
+                continue
+            if key[0] == "before":
+                _, k, said, labware, column, row, what = key
+                place = f"{labware} column {column} row {ROWS[row] if isinstance(row, int) and row < 8 else row}"
+                amount = "volume" if what == "volume" else f"uL of {what}"
+                changed.append(f"when manual step {k + 1} ('{said}') comes, {place} holds {before:g} -> {after:g} "
+                               + ("uL" if what == "volume" else amount))
                 continue
             if key[0] == "well":
                 _, labware, column, row, what = key
@@ -448,8 +490,9 @@ class SelfHealer:
     def _intent_error(changed: List[str]) -> str:
         shown = "; ".join(changed[:3]) + ("; ..." if len(changed) > 3 else "")
         return (f"the edit changes the experiment ({shown}). A repair may restructure the steps (split, merge, reorder, "
-                "air in the tip), but every plate well must end with the same volume and reagents, and every heated or "
-                "shaken hold must keep its time")
+                "air in the tip), but every plate well must end with the same volume and reagents, every heated or "
+                "shaken hold must keep its time, and every manual step must stay as it is, with the wells holding what "
+                "they held when it comes")
 
     def _prompt(self, protocol: Dict[str, Any], gate: GateResult, history: List[str]) -> str:
         deck = "\n".join(f"- {lid} ({spec['kind']})" for lid, spec in self.deck_config["labware"].items())
@@ -547,6 +590,8 @@ class SelfHealer:
         system = SYSTEM_PROMPT
         if any(s.get("action") in EXTENDED_ACTIONS for s in protocol["steps"]):
             system += EXTENDED_PROMPT
+        if any(s.get("action") == "manual" for s in protocol["steps"]):
+            system += MANUAL_PROMPT
 
         for round_num in range(max_rounds + 1):
             gate = self.evaluate(current, round_num)

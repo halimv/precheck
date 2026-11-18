@@ -92,6 +92,10 @@ class HardwareExecutor:
     def check_supported(self, protocol: Dict[str, Any]) -> None:
         if self.backend == "star" and any(s.get("action") in DEVICE_ACTIONS for s in protocol["steps"]):
             raise ExecutionError("Heater-shaker steps are only simulated so far; the STAR backend cannot run them yet.")
+        if self.backend == "star" and any(s.get("action") == "manual" for s in protocol["steps"]):
+            raise ExecutionError("This protocol has manual steps the operator does by hand, and this page cannot pause "
+                                 "the robot for them. Run it with AHC (each one is a request_manual_step) or with the "
+                                 "standalone script (python <script> --backend star asks at the terminal).")
 
     def run(self, protocol: Dict[str, Any], mode: str = "full") -> Dict[str, Any]:
         return asyncio.run(self._run(protocol, mode))

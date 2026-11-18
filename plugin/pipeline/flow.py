@@ -87,6 +87,7 @@ def finish(protocol: Dict[str, Any], deck_config: Dict[str, Any], stem: str, rou
         "review": review(protocol, deck_config),
         "suggestions": suggestions(protocol, deck_config),
         "ahc": {"accepted_types_from": ahc.get("source"), "not_on_layout": problems, "differs_from_venus": warnings},
+        "manual_steps": manual_steps(protocol),
     }
     report["needs_review"] = summary.review_items(protocol, rounds, report["review"], report["suggestions"], report["ahc"],
                                                   deck_path=deck_path, passed=True)
@@ -95,6 +96,27 @@ def finish(protocol: Dict[str, Any], deck_config: Dict[str, Any], stem: str, rou
                                              {**report["files"], "simulated_on": simulated_on}, passed=True))
     (healed / f"{stem}_report.json").write_text(json.dumps(report, indent=2))
     return report
+
+
+def manual_steps(protocol: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """The steps the operator does by hand, in order, each as AHC asks for it (request_manual_step): the instruction,
+    the labware, about how long, and the wells it empties as AHC targets ("<plate>:A<c>:H<c>")."""
+    rows = "ABCDEFGH"
+    out = []
+    for s in protocol.get("steps", []):
+        if s.get("action") != "manual":
+            continue
+        empties = []
+        for e in s.get("empties") or []:
+            chans = sorted(e.get("channels", list(range(8))))
+            first, last = rows[chans[0]], rows[chans[-1]]
+            contiguous = chans == list(range(chans[0], chans[-1] + 1))
+            empties += ([f"{e['labware']}:{first}{e['column']}:{last}{e['column']}"] if contiguous else
+                        [f"{e['labware']}:{rows[c]}{e['column']}" for c in chans])
+        out.append({"step": s.get("step"), "instruction": s.get("instruction"), "labware": s.get("labware"),
+                    **({"duration_min": s["duration_min"]} if s.get("duration_min") is not None else {}),
+                    **({"empties": empties} if empties else {})})
+    return out
 
 
 def result_summary(status: str, tiers: List[Dict[str, Any]], max_rounds: int, log: Path, protocol_name: str) -> str:

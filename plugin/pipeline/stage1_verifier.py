@@ -216,6 +216,22 @@ class Verifier:
                 if self._get_plate_specs(labware):
                     self._wells(labware)[ch][col_idx] = 0.0
 
+        elif action == "manual":
+            # The operator does it by hand: they reach into the deck, so no tips hang over it; wells it empties
+            # (a spin column's flow-through discarded) hold nothing afterwards.
+            if not isinstance(step.get("instruction"), str) or not step["instruction"].strip():
+                raise SafetyGateError(f"Step {step_num}: manual requires an 'instruction'.", code="VALIDATION_ERROR")
+            if any(self.channel_mounted_tips):
+                raise SafetyGateError(
+                    f"Step {step_num}: manual step while tips are still mounted. Use tips_off first: the operator "
+                    "works on the deck by hand.",
+                    code="TIPS_DURING_HOLD"
+                )
+            for e in step.get("empties") or []:
+                if self._get_plate_specs(e.get("labware")) and isinstance(e.get("column"), int):
+                    for ch in e.get("channels", list(range(8))):
+                        self._wells(e["labware"])[ch][e["column"] - 1] = 0.0
+
         elif action in ("incubate", "shake"):
             duration = step.get("duration_s")
             if not isinstance(duration, (int, float)) or duration <= 0:

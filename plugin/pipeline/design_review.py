@@ -81,6 +81,11 @@ def trace_mixtures(protocol: Dict[str, Any], kinds: Dict[str, str]) -> Tuple[Dic
 
     for s in protocol.get("steps", []):
         action, labware, volume = s.get("action"), s.get("labware"), float(s.get("volume_ul") or 0)
+        if action == "manual":  # wells the operator empties by hand (a spin column's flow-through discarded)
+            for e in s.get("empties") or []:
+                for ch in e.get("channels", list(range(8))):
+                    where[spot(e.get("labware"), e.get("column"), ch)] = {}
+            continue
         for ch in s.get("channels", [0]):
             if action == "tips_off":
                 tips.pop(ch, None)

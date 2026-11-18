@@ -101,8 +101,15 @@ never a reagent that is the same for every well (a diluent): that stays in a res
 keep {well_min:g} uL or more and stay below its capacity.
 - Bench protocols are often written in mL. Keep every ratio and dilution factor, but scale volumes down \
 to fit the plate and tips, and record the scaling in "assumptions".
-- Anything the robot cannot do (plating, counting colonies, incubating outside the deck) stays out of the \
-steps; mention it in "assumptions".
+- A step the robot cannot do but the experiment needs between liquid-handling steps (centrifuge, vortex, \
+incubate or shake off the deck, move labware on or off the deck, add a sample by hand) is a "manual" step, in its \
+place in the order: {{"action": "manual", "labware": "<the labware the operator handles>", "volume_ul": 0, \
+"channels": [0], "instruction": "<one plain instruction, with speeds, times and temperatures from the text>", \
+"duration_min": <about how long, optional>, "empties": [{{"labware": "<plate>", "column": <c>}}], "description": "..."}}. \
+"empties" lists the plate columns the step leaves empty (a spin column's flow-through that is discarded); leave it out \
+otherwise. Tips must be off before a manual step. The operator is asked to do it and the robot waits, so keep the \
+instruction exact and complete. Work wholly before or after the run (collecting tissue, weighing, reading a \
+spectrophotometer, storage) stays out of the steps; mention it in "assumptions".
 {extended}
 # Protocol text from the scientist
 <protocol>
@@ -235,7 +242,7 @@ def available(base_deck: Dict[str, Any], root: Path = ROOT) -> Dict[str, str]:
 
 def build_prompt(source_text: str, base_deck: Dict[str, Any], pdf: Optional[Path] = None) -> str:
     has_devices = bool(base_deck.get("machines"))
-    actions = ACTIONS if has_devices else tuple(a for a in ACTIONS if a not in ("empty", "incubate", "shake"))
+    actions = ACTIONS if has_devices else tuple(a for a in ACTIONS if a not in ("empty", "incubate", "shake"))  # manual stays
     source = source_text or f"(The protocol is in the PDF file {pdf.name} in the current directory; read it.)"
     return PROMPT.format(**available(base_deck), well_min=30, actions=", ".join(actions),
                          extended=EXTENDED if has_devices else "", source=source)

@@ -14,6 +14,11 @@ can map a runtime exception back to the IR step that caused it.
 Device steps (incubate, shake) act on a plate sitting on a heater-shaker. Hold times are not
 waited out in simulation; the step only sets the device state the hardware would be in.
 `empty` aspirates everything in a plate column, whatever it holds at that point, into waste.
+
+`manual` is a step the operator does by hand because the robot cannot (centrifuge, vortex, incubate off deck,
+move labware). It stays in the protocol so the experiment is complete and the intent guard keeps it in place; the
+compiled code hands it to `pipeline.pipetting.manual_step`, which asks the operator (or, in simulation, logs it).
+Its `empties` are plate wells the step leaves empty (a spin column's flow-through discarded): set to 0 uL.
 """
 
 import json
@@ -23,7 +28,7 @@ from typing import Any, Dict, List
 import yaml
 
 ROWS = "ABCDEFGH"
-ACTIONS = ("tips_on", "tips_off", "aspirate", "dispense", "empty", "incubate", "shake")
+ACTIONS = ("tips_on", "tips_off", "aspirate", "dispense", "empty", "incubate", "shake", "manual")
 DEVICE_ACTIONS = ("incubate", "shake")
 
 
@@ -47,6 +52,8 @@ def translate_step(step: Dict[str, Any], kinds: Dict[str, str], troughs: frozens
 
     if action not in ACTIONS:
         raise CompilationError(f"Step {n}: unknown action '{action}'. Supported: {', '.join(ACTIONS)}.")
+    if action == "manual":
+        return _manual_step(step, kinds)
     if action == "tips_off":
         return "await tips_off(lh)"
     if labware not in kinds:
@@ -108,6 +115,39 @@ def _device_step(step: Dict[str, Any], kind: str) -> str:
     return "\n".join(lines)
 
 
+def manual_empties(step: Dict[str, Any], kinds: Dict[str, str]) -> List[tuple]:
+    """A manual step's `empties` as (plate, column, channels), checked: each names a plate and a column 1-12."""
+    n, out = step.get("step"), []
+    empties = step.get("empties") or []
+    if not isinstance(empties, list):
+        raise CompilationError(f"Step {n}: manual 'empties' must be a list of {{\"labware\", \"column\"}}.")
+    for e in empties:
+        lid, col = (e or {}).get("labware"), (e or {}).get("column")
+        chans = (e or {}).get("channels", list(range(len(ROWS))))
+        if kinds.get(lid) != "plate":
+            raise CompilationError(f"Step {n}: manual empties names '{lid}', which is not a plate on the deck.")
+        if not isinstance(col, int) or isinstance(col, bool) or not 1 <= col <= 12:
+            raise CompilationError(f"Step {n}: manual empties needs a 'column' 1-12 for '{lid}', got {col!r}.")
+        if not isinstance(chans, list) or any(not isinstance(c, int) or not 0 <= c < len(ROWS) for c in chans):
+            raise CompilationError(f"Step {n}: manual empties channels must be integers 0-7, got {chans!r}.")
+        out.append((lid, col, chans))
+    return out
+
+
+def _manual_step(step: Dict[str, Any], kinds: Dict[str, str]) -> str:
+    n = step.get("step")
+    instruction = step.get("instruction")
+    if not isinstance(instruction, str) or not instruction.strip():
+        raise CompilationError(f"Step {n}: manual needs an 'instruction': what the operator does by hand.")
+    if step.get("labware") is not None and step.get("labware") not in kinds:
+        raise CompilationError(f"Step {n}: labware '{step.get('labware')}' is not on the deck.")
+    duration = step.get("duration_min")
+    if duration is not None and (isinstance(duration, bool) or not isinstance(duration, (int, float)) or duration < 0):
+        raise CompilationError(f"Step {n}: manual 'duration_min' must be minutes >= 0, got {duration!r}.")
+    wells = [f'res["{lid}"].get_item("{ROWS[ch]}{col}")' for lid, col, chans in manual_empties(step, kinds) for ch in chans]
+    return f"await manual_step(lh, {instruction.strip()!r}, empties=[{', '.join(wells)}])"
+
+
 def _empty_step(step: Dict[str, Any], kind: str, kinds: Dict[str, str]) -> str:
     n, labware, channels = step.get("step"), step.get("labware"), step.get("channels", [0])
     if kind != "plate" or "column" not in step:
@@ -135,7 +175,10 @@ def compile_protocol(protocol: Dict[str, Any], deck_config: Dict[str, Any]) -> s
     troughs = venus_troughs(deck_config)
     if any(s.get("labware") in troughs and s.get("action") in ("aspirate", "dispense") for s in protocol.get("steps", [])):
         lines.append("from pipeline.deck import reach")
-    lines.append("from pipeline.pipetting import aspirate, dispense, tips_off, tips_on")
+    helpers = "aspirate, dispense, tips_off, tips_on"
+    if any(s.get("action") == "manual" for s in protocol.get("steps", [])):
+        helpers = "aspirate, dispense, manual_step, tips_off, tips_on"
+    lines.append(f"from pipeline.pipetting import {helpers}")
     lines += ["", "async def run_protocol(lh, res):"]
     for step in protocol.get("steps", []):
         desc = step.get("description") or f"{step.get('action')} {step.get('labware', '')}".strip()
@@ -200,6 +243,11 @@ if __name__ == "__main__":
                        "(demo/server.py -> Execute). Type 'run' to continue: ")
         if answer.strip().lower() != "run":
             sys.exit("Not run.")
+        from pipeline.pipetting import set_manual_handler
+
+        # A step the robot cannot do waits here until the operator has done it by hand.
+        set_manual_handler(lambda instruction: input(f"\nMANUAL STEP (the robot waits): {{instruction}}\n"
+                                                     "Press Enter once it is done: "))
     asyncio.run(_main(args.backend))
 """
 

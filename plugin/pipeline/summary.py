@@ -37,6 +37,11 @@ def review_items(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], review:
         add("must", "deck", "Place on the deck before the run", change)
     for problem in ahc.get("not_on_layout", []):
         add("must", "AHC", "AHC cannot load this item", problem)
+    for s in protocol.get("steps", []):
+        if s.get("action") == "manual":
+            took = f" (about {s['duration_min']:g} min)" if isinstance(s.get("duration_min"), (int, float)) else ""
+            add("check", "manual", f"Step {s.get('step')} is done by hand{took}",
+                f"{s.get('instruction')}. The robot waits for the operator (AHC asks them with request_manual_step).")
     for assumption in review.get("assumptions", []):
         add("check", "drafting", "Assumption made when drafting", assumption)
     for warning in ahc.get("differs_from_venus", []):
