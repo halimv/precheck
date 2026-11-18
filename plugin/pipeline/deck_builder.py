@@ -182,9 +182,13 @@ def _catalog(root: str) -> Tuple[Dict[str, Any], ...]:
     return tuple(entries)
 
 
-def catalog(root: Path = ROOT) -> List[Dict[str, Any]]:
+def catalog(root: Path = ROOT, source: str = "venus") -> List[Dict[str, Any]]:
     """Every ML_STAR carrier, tip rack, 96-well plate, single-container reservoir and sample-tube rack in VENUS's
-    library that a deck can be built from."""
+    library that a deck can be built from; with `source="plr"`, PyLabRobot's own catalog instead
+    (pipeline/plr_catalog.py: precheck alone, no lab)."""
+    if source == "plr":
+        from pipeline import plr_catalog
+        return plr_catalog.catalog()
     return list(_catalog(str(root)))
 
 
@@ -297,6 +301,9 @@ def _carrier_rank(carrier: Dict[str, Any], need_kind: str) -> Tuple:
 
 
 def _site_fits(site: Dict[str, Any], entry: Dict[str, Any]) -> bool:
+    if "holds" in site:  # a PyLabRobot carrier's site (pipeline/plr_catalog.py)
+        from pipeline import plr_catalog
+        return plr_catalog.site_fits(site, entry)
     return abs(site["dx"] - entry["size"][0]) <= FIT_MM and abs(site["dy"] - entry["size"][1]) <= FIT_MM
 
 
@@ -338,8 +345,10 @@ def _record(entry: Dict[str, Any], carrier_entry: Optional[Dict[str, Any]], carr
 
 def resolve(needs: Dict[str, Dict[str, Any]], base_deck: Dict[str, Any], root: Path = ROOT,
             name: str = "protocol") -> Resolution:
-    """A deck for `needs` built on `base_deck` (the instrument's .lay, as pipeline.deck reads it)."""
-    entries = catalog(root)
+    """A deck for `needs` built on `base_deck` (the instrument's .lay, as pipeline.deck reads it; or, with
+    `"catalog": "plr"`, an empty STAR deck that is filled from PyLabRobot's catalog)."""
+    source = base_deck.get("catalog", "venus")
+    entries = catalog(root, source)
     deck = _Deck(base_deck, entries, load_instrument(base_deck.get("instrument", "config/instrument/starlet_F553.json"),
                                                        root)["deck"]["rails"])
     mapping: Dict[str, Any] = {}
@@ -377,7 +386,8 @@ def resolve(needs: Dict[str, Dict[str, Any]], base_deck: Dict[str, Any], root: P
             continue
         placed = None
         if kind == "tube":
-            placed = _place_tube(deck, candidates, ir_name, need)
+            placed = (_place_plr_tube(deck, candidates, ir_name, need) if source == "plr"
+                      else _place_tube(deck, candidates, ir_name, need))
         else:
             placed = _place_on_carrier(deck, candidates, entries, ir_name, need)
         if placed is None:
@@ -453,6 +463,30 @@ def _place_tube(deck: _Deck, candidates, ir_name, need) -> Optional[Dict[str, An
     return None
 
 
+def _place_plr_tube(deck: _Deck, candidates, ir_name, need) -> Optional[Dict[str, Any]]:
+    """A PyLabRobot tube stands in a site of its tube carrier (`carrier_factory`): a carrier of that type this stage
+    already added takes the next tube, else a new one goes on free rails."""
+    for e in candidates:
+        ce = deck.by_type.get(e["carrier_factory"].lower())
+        if ce is None:
+            continue
+        for carrier in deck.carriers:
+            if carrier.get("added") and carrier.get("factory") == e["carrier_factory"]:
+                free = [i for i, _ in deck.free_sites(carrier)]
+                if free:
+                    deck.labware[ir_name] = _labware_spec(e, carrier["name"], free[0], "tube")
+                    return _record(e, ce, carrier, free[0], len(ce["sites"]), "add_carrier", need)
+        rails = deck.free_rails(ce["tracks"])
+        if rails is None:
+            continue
+        carrier = _carrier_spec(ce, f"{ce['venus_type']}_{rails}", rails)
+        deck.carriers.append(carrier)
+        slot = len(ce["sites"]) - 1  # the rear-most site
+        deck.labware[ir_name] = _labware_spec(e, carrier["name"], slot, "tube")
+        return _record(e, ce, carrier, slot, len(ce["sites"]), "add_carrier", need)
+    return None
+
+
 def _config(deck: _Deck, renames: Dict[str, str], base: Dict[str, Any], name: str) -> Dict[str, Any]:
     labware = {}
     for lid, spec in deck.labware.items():
@@ -460,13 +494,16 @@ def _config(deck: _Deck, renames: Dict[str, str], base: Dict[str, Any], name: st
             labware[renames[lid]] = {**spec, "venus_id": lid}
         else:
             labware[lid] = spec
-    return {
+    config = {
         "description": f"Deck for {name}, built by pipeline/deck_builder.py on {base.get('source', {}).get('venus_layout', 'the instrument deck')} "
-                       "from VENUS's labware library. Labware IDs are the protocol's IR names; labware the protocol does "
-                       "not use keeps its VENUS ID. Carriers marked `added` are not on the deck yet.",
+                       f"from {'PyLabRobot' if base.get('catalog') == 'plr' else 'VENUS'}'s labware library. Labware IDs are the protocol's "
+                       "IR names; labware the protocol does not use keeps its VENUS ID. Carriers marked `added` are not on the deck yet.",
         "deck": base["deck"], "instrument": base.get("instrument"), "source": base.get("source", {}),
         "carriers": deck.carriers, "labware": labware,
     }
+    if base.get("catalog"):
+        config["catalog"] = base["catalog"]
+    return config
 
 
 def save(resolution: Resolution, decks_dir: Path, stem: str, root: Path = ROOT) -> Tuple[Path, Path]:

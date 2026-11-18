@@ -99,6 +99,97 @@ def trace_mixtures(protocol: Dict[str, Any], kinds: Dict[str, str]) -> Tuple[Dic
     return where, drawn
 
 
+def _round_ul(v: float) -> float:
+    return round(v, 2) if v >= 1 else float(f"{v:.2g}")
+
+
+def find_outputs(protocol: Dict[str, Any], kinds: Dict[str, str], where: Dict[Any, Mix],
+                 res: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """The labware that holds what the protocol makes, when it ends, and what each of its wells (or the container)
+    holds: any kind of protocol, not only a dilution series.
+
+    The IR may name its outputs ("outputs": ["elution_plate"]). Otherwise an output is labware that liquid is
+    dispensed into, that holds liquid at the end, and that is not a reagent source: a container loaded before the
+    run, or one drawn from again after it was last filled (a master mix made and then dealt out), is not an output
+    unless nothing else is. Plates come first, in the order they are first filled.
+
+    When nothing on the deck holds liquid at the end because the last thing done to the product is a manual step
+    that takes it away (a spin column centrifuged into a tube off the deck), the output is what that labware held
+    just before, with the step's instruction (`leaves_deck`)."""
+    steps = protocol.get("steps", [])
+    loaded = {(loaded_wells(k) or (k,))[0] for k in (protocol.get("initial_volumes_ul") or {})}
+    first_in: Dict[str, int] = {}
+    last_in: Dict[str, int] = {}
+    last_out: Dict[str, int] = {}
+    for i, s in enumerate(steps):
+        lw = s.get("labware")
+        if s.get("action") == "dispense":
+            first_in.setdefault(lw, i)
+            last_in[lw] = i
+        elif s.get("action") == "aspirate":
+            last_out[lw] = i
+
+    def spots(lw: str, state: Dict[Any, Mix] = where) -> Dict[Any, Mix]:
+        if kinds.get(lw) == "plate":
+            return {(k[1], k[2]): m for k, m in state.items() if isinstance(k, tuple) and k[0] == lw}
+        return {None: state[lw]} if lw in state else {}
+
+    def holds(lw: str, state: Dict[Any, Mix] = where) -> bool:
+        return any(sum(m.values()) > 1e-6 for m in spots(lw, state).values())
+
+    named = [n for n in (protocol.get("outputs") or []) if n in kinds]
+    if named:
+        chosen = named
+    else:
+        filled = [lw for lw in last_in if kinds.get(lw) in ("plate", "container") and holds(lw)]
+        final = [lw for lw in filled if lw not in loaded and (kinds[lw] == "plate" or last_out.get(lw, -1) < last_in[lw])]
+        chosen = final or filled
+        chosen.sort(key=lambda lw: (kinds[lw] != "plate", first_in[lw]))
+
+    taken_off: Dict[str, Tuple[Dict[Any, Mix], str]] = {}  # labware -> (what it held, the step that took it away)
+    if not chosen:
+        for lw, last in last_in.items():
+            emptied = [i for i, s in enumerate(steps) if i > last and s.get("action") == "manual"
+                       and any(e.get("labware") == lw for e in s.get("empties") or [])]
+            if emptied and kinds.get(lw) in ("plate", "container"):
+                before, _ = trace_mixtures({**protocol, "steps": steps[:emptied[-1]]}, kinds)
+                if holds(lw, before):
+                    taken_off[lw] = (before, steps[emptied[-1]].get("instruction") or "")
+        chosen = sorted(taken_off, key=lambda lw: (kinds[lw] != "plate", first_in[lw]))
+
+    outputs = []
+    for lw in chosen:
+        wells = []
+        state = taken_off[lw][0] if lw in taken_off else where
+        for spot, mix in sorted(spots(lw, state).items(), key=lambda kv: (kv[0] or (0, 0))):
+            total = sum(mix.values())
+            if total <= 1e-6:
+                continue
+            wells.append({"well": f"{ROWS[spot[1]]}{spot[0]}" if spot else None, "ul": _round_ul(total),
+                          "contents": {k: _round_ul(v) for k, v in sorted(mix.items(), key=lambda kv: -kv[1]) if v > 1e-9}})
+        r = (res or {}).get(lw)
+        out = {"labware": lw, "kind": kinds[lw], "named_by_protocol": bool(named), "wells": wells,
+               "total_ul": _round_ul(sum(w["ul"] for w in wells))}
+        if lw in taken_off:
+            out["leaves_deck"] = taken_off[lw][1]
+        if kinds[lw] == "plate":
+            out.update(rows=getattr(r, "num_items_y", 8) or 8, columns=getattr(r, "num_items_x", 12) or 12)
+        outputs.append(out)
+    return outputs
+
+
+def is_series(outputs: List[Dict[str, Any]]) -> bool:
+    """A dilution series: some reagent is at three or more different fractions across the output wells. Only then
+    does a well's "1:10" say something; elsewhere the contents in uL do."""
+    fractions: Dict[str, set] = {}
+    for o in outputs:
+        for w in o["wells"]:
+            for k, v in w["contents"].items():
+                if w["ul"] > 0:
+                    fractions.setdefault(k, set()).add(round(math.log10(max(v / w["ul"], 1e-12)), 1))
+    return any(len(f) >= 3 for f in fractions.values())
+
+
 def _position(resource: Any, spec: Dict[str, Any]) -> Any:
     """The carrier position as Hamilton counts it (1 = rear-most); deck configs count sites from the front."""
     if "venus_position" in spec:
@@ -186,6 +277,8 @@ def review(protocol: Dict[str, Any], deck_config: Dict[str, Any], root: Path = R
         "labware": labware,
         "reagents": reagents,
         "wells": wells,
+        "outputs": (outputs := find_outputs(protocol, kinds, where, res)),
+        "series": is_series(outputs),
         "limits": {plate: limits[plate]["well_specifications"]["well_volume_range"] for plate in plates if plate in limits},
         "policy": policy,
         "tips": {"used": sum(len(s.get("channels", [0])) for s in tip_steps),

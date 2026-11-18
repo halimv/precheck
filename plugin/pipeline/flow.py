@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional
 from pipeline import fidelity, summary
 from pipeline.ahc_export import load_ahc_types, to_ahc_layout, write_layout
 from pipeline.deck import DEFAULT_DECK
+from pipeline.deck_view import deck_view
 from pipeline.design_review import review, suggestions
 from pipeline.stage0_drafter import revision_stem
 from pipeline.stage2_compiler import compile_standalone
@@ -88,6 +89,8 @@ def finish(protocol: Dict[str, Any], deck_config: Dict[str, Any], stem: str, rou
     report = {
         "status": status,
         "name": stem,
+        # "lab": built from the lab's labware on its STARlet, ready for AHC; "plr": precheck alone, PyLabRobot's catalog
+        "target": "plr" if deck_config.get("catalog") == "plr" else "lab",
         "protocol_name": protocol.get("protocol_name"),
         "steps": len(protocol.get("steps", [])),
         "repair_rounds": max(len(rounds) - 1, 0),
@@ -104,11 +107,13 @@ def finish(protocol: Dict[str, Any], deck_config: Dict[str, Any], stem: str, rou
                      "scope": protocol.get("requirements_scope"), "outside_run": protocol.get("outside_run") or []},
     }
     report["needs_review"] = summary.review_items(protocol, rounds, report["review"], report["suggestions"], report["ahc"],
-                                                  deck_path=deck_path, passed=True, fidelity=report["fidelity"])
+                                                  deck_path=deck_path, passed=True, fidelity=report["fidelity"],
+                                                  target=report["target"])
+    report["deck_view"] = deck_view(protocol, deck_config, report)
     summary_path = healed / f"{stem}_summary.md"
     summary_path.write_text(summary.markdown(protocol, rounds, tiers or [], report["review"], report["needs_review"],
                                              {**report["files"], "simulated_on": simulated_on}, passed=True,
-                                             fidelity=report["fidelity"]))
+                                             fidelity=report["fidelity"], target=report["target"]))
     (healed / f"{stem}_report.json").write_text(json.dumps(report, indent=2))
     return report
 
@@ -134,11 +139,19 @@ def manual_steps(protocol: Dict[str, Any]) -> List[Dict[str, Any]]:
     return out
 
 
-def result_summary(status: str, tiers: List[Dict[str, Any]], max_rounds: int, log: Path, protocol_name: str) -> str:
+def passed_banner(target: str = "lab") -> str:
+    """PreCheck + AHC: built from the lab's labware, ready to hand to AHC. PreCheck alone: checked on PyLabRobot's
+    labware, not yet on the lab's."""
+    return ("PASSED: ready (PreCheck alone, PyLabRobot labware; check it with your lab's labware before AHC)"
+            if target == "plr" else "PASSED: ready for AHC")
+
+
+def result_summary(status: str, tiers: List[Dict[str, Any]], max_rounds: int, log: Path, protocol_name: str,
+                   target: str = "lab") -> str:
     """The result of a run as the person reads it: passed or not, which models were tried and for how many rounds,
     the last failure, and what was written. A protocol that did not pass writes nothing to healed/."""
     passed = status in ("HEALED", "ALREADY_PASSING", "PASSED")
-    head = "PASSED: ready for AHC" if passed else "NOT READY: did not pass the simulator"
+    head = passed_banner(target) if passed else "NOT READY: did not pass the simulator"
     lines = [head, f"Protocol: {protocol_name}", "Repair models tried (up to %d rounds each):" % max_rounds]
     for tier in tiers:
         used = max(len(tier["rounds"]) - 1, 0)

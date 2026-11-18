@@ -17,6 +17,16 @@
 
       <form id="run-form" class="panel">
         <div class="field">
+          <span>Where it runs
+            <button type="button" class="info" data-tip="PreCheck alone checks the protocol on PyLabRobot's STAR model with any labware PyLabRobot has a model of, on an empty deck: no lab needed. PreCheck + AHC builds it from your lab's own labware on the deck that is on your STARlet, so AHC can run it there." aria-label="PreCheck alone checks the protocol on PyLabRobot's STAR model with any labware PyLabRobot has a model of, on an empty deck: no lab needed. PreCheck + AHC builds it from your lab's own labware on the deck that is on your STARlet, so AHC can run it there.">i</button></span>
+          <div class="target-choice" role="radiogroup">
+            <label><input type="radio" name="target" value="plr"> <b>PreCheck alone</b>
+              <small>Any labware and carrier PyLabRobot has a model of, on an empty STAR deck. Try a protocol out.</small></label>
+            <label><input type="radio" name="target" value="lab" checked> <b>PreCheck + AHC</b>
+              <small>Your lab's labware (VENUS library) on the deck on your STARlet, ready for AHC to run.</small></label>
+          </div>
+        </div>
+        <div class="field">
           <span>Protocol
             <button type="button" class="info" data-tip="Describe the protocol in your own words, attach its PDF, or pick one already written as steps. Text and PDFs are turned into steps by Claude, on the deck that is on the STARlet." aria-label="Describe the protocol in your own words, attach its PDF, or pick one already written as steps. Text and PDFs are turned into steps by Claude, on the deck that is on the STARlet.">i</button></span>
           <div class="tabs seg" role="tablist">
@@ -24,7 +34,7 @@
             <button type="button" role="tab" id="tab-saved" aria-selected="false">Saved</button>
           </div>
           <div id="source-text">
-            <textarea id="text" rows="6" placeholder="e.g. Serially dilute the culture 1:10 in 0.9% saline, six times, in a 96-well plate."></textarea>
+            <textarea id="text" rows="6" placeholder="Paste the protocol or describe it in your own words, e.g. &quot;Add 180 µL Buffer ATL and 20 µL proteinase K to each of 8 tissue samples, vortex, incubate at 56 °C…&quot;, or attach its PDF."></textarea>
             <label class="attach"><input type="file" id="file" accept=".pdf,.txt,.md"><span id="file-name">Attach a PDF or text file</span></label>
           </div>
           <div id="source-saved" hidden>
@@ -85,6 +95,7 @@
     </main>
   </div>
   <script src="/static/common.js"></script>
+  <script src="/static/deckview.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>

@@ -245,21 +245,42 @@ async function openVisualizer(button, note) {
   }
 }
 
-function contents(w) {
+function contents(w, series) {
+  // a well's "1:10" only says something in a dilution series; elsewhere the µL do
   const parts = Object.entries(w.contents).map(([name, c]) =>
-    `${name.length > 34 ? name.slice(0, 33) + "…" : name} ${c.ul < 1 ? Number(c.ul).toLocaleString(undefined, { maximumSignificantDigits: 2 }) : fmt(c.ul)} µL${c.dilution >= 2 ? ` (1:${Number(c.dilution).toLocaleString()})` : ""}`);
+    `${name.length > 34 ? name.slice(0, 33) + "…" : name} ${c.ul < 1 ? Number(c.ul).toLocaleString(undefined, { maximumSignificantDigits: 2 }) : fmt(c.ul)} µL${series && c.dilution >= 2 ? ` (1:${Number(c.dilution).toLocaleString()})` : ""}`);
   const cell = el("span", { text: parts.join(" + ") || "empty" });
   if (w.flags.length) cell.append(el("span", { class: "flag", text: `  ${w.flags.join("; ")}` }));
   return cell;
 }
 
+function deckBlock(report) {
+  const view = report.deck_view;
+  if (!view) return null;
+  return el("div", { class: "block" },
+    el("h4", {}, "The deck", info(report.target === "plr"
+      ? "Built for PreCheck alone from PyLabRobot's catalog on an empty STAR deck. Red: a potential problem. Yellow: an assumption Claude made about it. Hover any labware or carrier for a photo and details."
+      : "Your STARlet's deck (its VENUS layout) with what this protocol adds. Red: a potential problem. Yellow: an assumption Claude made about it. Hover any labware or carrier for a photo and details.")),
+    deckView(view, { usedOnly: report.target !== "plr" }));
+}
+
+function outputBlock(report) {
+  const r = report.review;
+  if (!r.outputs) return null;
+  const names = r.outputs.map((o) => o.labware);
+  return el("div", { class: "block" },
+    el("h4", {}, `The output${names.length ? `: ${names.length > 3 ? `${names.slice(0, 3).join(", ")} and ${names.length - 3} more` : names.join(", ")}` : ""}`,
+      info("What the protocol makes, traced through every step: the labware liquid ends up in that is not a reagent source. When the product is taken off the deck by hand (a spin column centrifuged into a tube), it is what was there just before. Hover a well for its contents.")),
+    outputView(r.outputs, r.series));
+}
+
 function reviewBlock(report) {
   const r = report.review;
   const block = el("div", { class: "block" });
-  const wells = el("div", {},
-    el("h4", {}, "What each well ends up holding", info("Traced through every step. The ratio is the dilution of that reagent in the well. A red note marks a well outside its limits.")),
+  const wells = el("details", {},
+    el("summary", {}, "Every plate, column by column", info("Traced through every step, intermediates too. A red note marks a well outside its limits.")),
     table(["Plate", "Column", "Rows", "µL", "Contents"], r.wells.map((w) => [w.plate, w.column, w.rows.length === 8 ? "A–H" : w.rows,
-      Array.isArray(w.volume_ul) ? `${fmt(w.volume_ul[0])}–${fmt(w.volume_ul[1])}` : w.volume_ul, contents(w)])));
+      Array.isArray(w.volume_ul) ? `${fmt(w.volume_ul[0])}–${fmt(w.volume_ul[1])}` : w.volume_ul, contents(w, r.series)])));
   const reagents = el("div", {},
     el("h4", {}, "Reagents to load", info("Load: what goes in before the run. Drawn: what the plan takes out. Left: what stays behind as dead volume.")),
     table(["Container", "Load µL", "Drawn", "Left", "Holds up to"], r.reagents.map((g) => [el("span", { text: g.labware, "data-tip": g.reagent }), g.loaded_ul, g.drawn_ul, g.left_ul, g.capacity_ul])));
@@ -303,6 +324,14 @@ function improveBlock(report, runId) {
 }
 
 function handOffBlock(report) {
+  if (report.target === "plr") {
+    const block = el("div", { class: "block" },
+      el("h4", {}, "Run it", info("PreCheck alone checked this on PyLabRobot's STAR model with PyLabRobot's labware. It is not tied to any lab's deck.")));
+    block.append(el("p", {}, el("span", { class: "mono", text: report.files.script }),
+      el("span", { class: "muted", text: "  a standalone PyLabRobot script: rehearse it with --backend chatterbox" })));
+    block.append(el("p", { class: "note", text: "To test it with your actual labware, check the same protocol again with \"PreCheck + AHC\": the deck is then built from your lab's VENUS library on your STARlet, and AHC can run it there with an on-site deck check." }));
+    return block;
+  }
   const ahc = report.ahc;
   const block = el("div", { class: "block" },
     el("h4", {}, "Run it", info("Precheck can run this itself from the Execute page: a deck checklist, a rehearsal, then the STARlet. AHC is optional: it adds a supervised run with error recovery and an on-site check that the deck matches these files.")));
@@ -334,6 +363,7 @@ function onDone(done) {
   const runId = state.runId;
   const card = el("section", { class: "card result-card" },
     el("header", {}, el("h3", { text: titles[done.status] || done.status }),
+      passing ? el("span", { class: `target-chip ${done.report.target || "lab"}`, text: done.report.target === "plr" ? "PreCheck alone" : "PreCheck + AHC" }) : null,
       el("span", { class: "meta", text: passing ? `${done.step_count} steps · checked on ${done.report.simulated_on}` : "" })));
 
   if (passing) {
@@ -346,7 +376,8 @@ function onDone(done) {
     const download = el("a", { href: `/api/runs/${runId}/healed.json` },
       el("button", { type: "button", text: "Download", "data-tip": "The passing protocol as JSON." }));
     card.append(el("div", { class: "block" }, el("div", { class: "actions", style: "margin-top:0" }, watch, run, download, note)));
-    card.append(reviewBlock(done.report), improveBlock(done.report, runId), handOffBlock(done.report));
+    card.append(...[outputBlock(done.report), deckBlock(done.report), reviewBlock(done.report),
+      improveBlock(done.report, runId), handOffBlock(done.report)].filter(Boolean));
     const changes = [["Repairs made", done.diff], ["Changes from the previous version", done.revision_diff]].filter(([, d]) => d);
     if (changes.length) {
       card.append(el("div", { class: "block" }, ...changes.map(([label, diff]) =>
@@ -420,6 +451,7 @@ async function startRun(event) {
   form.set("feedback", $("feedback").value);
   form.set("max_rounds", String(Number($("max-rounds").value) || 5));
   form.set("escalate", String($("escalate").checked));
+  form.set("target", (document.querySelector('input[name="target"]:checked') || {}).value || "lab");
   if (state.tab === "saved") form.set("protocol", $("protocol").value);
   else if ($("file").files[0]) form.set("file", $("file").files[0]);
   else form.set("text", $("text").value);

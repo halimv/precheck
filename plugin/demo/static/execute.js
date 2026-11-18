@@ -164,9 +164,21 @@ async function loadProtocol(name) {
   $("revisions").replaceChildren(...revisions.map((r) => el("li", { text: `${r.note} (on ${r.from})` })));
   if (revisions.length) $("assumptions-panel").hidden = false;
 
+  $("protocol-deck-card").hidden = !d.deck_view;
+  if (d.deck_view) $("protocol-deck").replaceChildren(deckView(d.deck_view, { usedOnly: d.target !== "plr" }));
+  $("target-chip").className = `target-chip ${d.target || "lab"}`;
+  $("target-chip").textContent = d.target === "plr" ? "PreCheck alone" : "PreCheck + AHC";
+  $("output-card").hidden = !d.outputs;
+  if (d.outputs) {
+    $("output-title").textContent = d.outputs.length ? `The output: ${d.outputs.map((o) => o.labware).join(", ")}` : "The output";
+    $("output-view").replaceChildren(outputView(d.outputs, d.series));
+  }
+  // precheck alone is not tied to the STARlet's deck: its VENUS layout and the AHC deck do not apply
+  $("deck-card").dataset.plr = d.target === "plr" ? "1" : "";
+
   const real = d.real_deck;
   $("deck-note-real").textContent = real.warning || "";
-  $("deck-card").hidden = false;
+  $("deck-card").hidden = d.target === "plr";
   $("checklist-card").hidden = false;
   // The instrument library's VENUS layout is the default; a .lay loaded on this page replaces it.
   if (!state.layoutUploaded) state.layout = d.instrument_layout ? { id: d.instrument_layout } : null;
@@ -222,7 +234,7 @@ function badge(kind, text) { return el("span", { class: `badge ${kind}`, text })
 
 function renderLayout() {
   const l = state.layout;
-  $("layout-card").hidden = !l;
+  $("layout-card").hidden = !l || (state.detail && state.detail.target === "plr");
   if (!l) return;
   $("layout-title").textContent = `Venus layout: ${l.name}${l.library ? " (instrument library)" : ""}`;
   $("layout-meta").textContent = `${l.deck_file} · Venus ${l.venus_version || "?"} · ${l.items.length} items`;

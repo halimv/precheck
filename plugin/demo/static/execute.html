@@ -82,6 +82,17 @@
         <span id="elapsed" class="elapsed"></span>
       </div>
 
+      <section class="card exec-section" id="protocol-deck-card" hidden>
+        <header><h3>This protocol's deck</h3><span id="target-chip" class="target-chip"></span>
+          <span class="meta">Red: potential problem · Yellow: assumption · hover for photos</span></header>
+        <div class="block" id="protocol-deck"></div>
+      </section>
+
+      <section class="card exec-section" id="output-card" hidden>
+        <header><h3 id="output-title">The output</h3></header>
+        <div class="block" id="output-view"></div>
+      </section>
+
       <section class="card exec-section" id="deck-card" hidden>
         <header><h3>Deck on the STARlet now <button type="button" class="info" data-tip="Read from config/instrument/ahc_deck.lay (VENUS), drawn as seen from the front." aria-label="Read from config/instrument/ahc_deck.lay (VENUS), drawn as seen from the front.">i</button></h3></header>
         <div class="block">
@@ -102,9 +113,11 @@
         <header><h3 id="layout-title">Venus layout</h3><span id="layout-meta" class="meta"></span></header>
         <div class="block">
           <p id="layout-verdict" class="strong"></p>
-          <div id="layout-compare"></div>
-          <div id="layout-problems"></div>
-          <div id="layout-positions"></div>
+          <details id="layout-details"><summary>Item by item, and PyLabRobot positions against VENUS</summary>
+            <div id="layout-compare"></div>
+            <div id="layout-problems"></div>
+            <div id="layout-positions"></div>
+          </details>
         </div>
       </section>
 
@@ -125,6 +138,7 @@
     </main>
   </div>
   <script src="/static/common.js"></script>
+  <script src="/static/deckview.js"></script>
   <script src="/static/execute.js"></script>
 </body>
 </html>

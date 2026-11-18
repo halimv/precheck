@@ -25,8 +25,12 @@ def _mapping_for(deck_path: Optional[Path]) -> Dict[str, Any]:
 
 def review_items(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], review: Dict[str, Any],
                  suggestions: List[Dict[str, Any]], ahc: Dict[str, Any], deck_path: Optional[Path] = None,
-                 passed: bool = True, fidelity: Optional[Dict[str, Any]] = None) -> List[Dict[str, str]]:
+                 passed: bool = True, fidelity: Optional[Dict[str, Any]] = None,
+                 target: str = "lab") -> List[Dict[str, str]]:
+    """What the scientist reviews, most important first. `target` "plr" is precheck alone (PyLabRobot's catalog,
+    no lab deck): what AHC would make of the deck is not part of it."""
     items: List[Dict[str, str]] = []
+    with_ahc = target != "plr"
 
     def add(severity: str, area: str, item: str, detail: str = "") -> None:
         items.append({"severity": severity, "area": area, "item": item, "detail": detail})
@@ -35,7 +39,7 @@ def review_items(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], review:
         add("must", "run", "Not ready", "The protocol did not pass the simulator; nothing was written to healed/.")
     for change in _mapping_for(deck_path).get("operator_changes", []):
         add("must", "deck", "Place on the deck before the run", change)
-    for problem in ahc.get("not_on_layout", []):
+    for problem in ahc.get("not_on_layout", []) if with_ahc else []:
         add("must", "AHC", "AHC cannot load this item", problem)
     fid = fidelity or {}
     if fidelity is not None and not fid.get("checked"):
@@ -69,7 +73,7 @@ def review_items(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], review:
                 f"{s.get('instruction')}. The robot waits for the operator (AHC asks them with request_manual_step).")
     for assumption in review.get("assumptions", []):
         add("check", "drafting", "Assumption made when drafting", assumption)
-    for warning in ahc.get("differs_from_venus", []):
+    for warning in ahc.get("differs_from_venus", []) if with_ahc else []:
         add("check", "AHC", "AHC's model differs from VENUS", warning)
     for round_ in rounds:
         applied = round_.get("edits_applied")
@@ -101,8 +105,9 @@ def _table(rows: List[List[str]], head: List[str]) -> List[str]:
 
 def markdown(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], tiers: List[Dict[str, Any]], review: Dict[str, Any],
              items: List[Dict[str, str]], files: Dict[str, str], passed: bool,
-             fidelity: Optional[Dict[str, Any]] = None) -> str:
-    head = "PASSED: ready for AHC" if passed else "NOT READY: did not pass the simulator"
+             fidelity: Optional[Dict[str, Any]] = None, target: str = "lab") -> str:
+    from pipeline.flow import passed_banner
+    head = passed_banner(target) if passed else "NOT READY: did not pass the simulator"
     name = protocol.get("protocol_name") or "protocol"
     lines = [f"# {name}", "", f"**{head}**", ""]
     lines += ["## Result", ""]

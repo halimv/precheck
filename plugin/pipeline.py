@@ -47,6 +47,7 @@ import yaml
 
 from pipeline import diagnostics, proposals
 from pipeline.deck import DeckError, deck_config_for, load_deck_config
+from pipeline.plr_catalog import starting_deck, target_of
 from pipeline.design_review import render
 from pipeline import runs, summary
 from pipeline.flow import NotFaithful, NotPassing, finish, next_stem, result_summary
@@ -204,6 +205,9 @@ def main():
                        help="The instrument file: it names the firmware configuration, VENUS's deck template and the "
                             "layout of the deck now (default config/instrument/starlet_F553.json)")
     truth.add_argument("--labware", default=None, help="VENUS's Labware folder (default config/Labware)")
+    truth.add_argument("--target", choices=["lab", "plr"], default="lab",
+                       help="lab: build the deck from this lab's VENUS labware on its STARlet (ready for AHC); plr: precheck "
+                            "alone, on an empty STAR deck with any labware PyLabRobot has a model of")
     truth.add_argument("--deck", default=None,
                        help="Deck to draft on: a VENUS .lay or a deck config (default: the instrument's layout)")
     parser.add_argument("--claude-model", default=None, help="Model for the Claude CLI draft and revisions (default: the CLI's)")
@@ -245,12 +249,14 @@ def main():
     previous_name = None
     try:
         if args.input or args.revise:
-            base_deck = load_deck_config(str(ROOT / deck_file))  # the deck on the STARlet: needs resolve against it
-            print(f"Ground truth: instrument {instrument_module.DEFAULT_INSTRUMENT}, deck {deck_file}, "
-                  f"labware library {args.labware or 'config/Labware'}")
+            revising = json.loads(Path(args.revise[0]).read_text()) if args.revise else None
+            base_deck = starting_deck(deck_file, args.target, revising)  # the deck its needs resolve against
+            print(f"Ground truth: instrument {instrument_module.DEFAULT_INSTRUMENT}, "
+                  + (f"an empty STAR deck, labware from PyLabRobot's catalog (precheck alone)" if target_of(base_deck) == "plr"
+                     else f"deck {deck_file}, labware library {args.labware or 'config/Labware'}"))
             if args.revise:
                 previous_file = Path(args.revise[0])
-                previous, previous_name = json.loads(previous_file.read_text()), previous_file.name
+                previous, previous_name = revising, previous_file.name
                 d = revise_draft(previous, previous_file.stem, read_source(args.revise[1])["text"], base_deck, deck_file, args)
             else:
                 banner("Stage 0: drafting the IR with the Claude CLI, then building its deck from the labware library")
@@ -287,7 +293,8 @@ def main():
             except RuntimeError as e:
                 sys.exit(f"\n[self-healing] {e}")
             print("\n" + result_summary(result.status, tiers, args.max_rounds,
-                                        Path(args.output) / stem / "heal_log.json", protocol_file.name))
+                                        Path(args.output) / stem / "heal_log.json", protocol_file.name,
+                                        target=target_of(deck_config)))
             if result.status == "GAVE_UP":
                 failed = Path(args.output) / stem / "summary.md"
                 failed.parent.mkdir(parents=True, exist_ok=True)
@@ -336,7 +343,7 @@ def main():
             break
         try:
             if base_deck is None:
-                base_deck = load_deck_config(str(ROOT / deck_file))
+                base_deck = starting_deck(deck_file, args.target, passing)
             previous, previous_name = passing, f"{stem}.json"
             d = revise_draft(passing, stem, change, base_deck, deck_file, args)
         except (DraftError, DeckError, OSError) as e:

@@ -52,6 +52,9 @@ from pipeline.stage4_visualizer import VisualizerSession, replay, start_visualiz
 from pipeline.stage5_executor import BACKENDS, MODES, ExecutionError, HardwareExecutor  # noqa: E402
 
 from pipeline import paths  # noqa: E402
+from pipeline.plr_catalog import starting_deck, target_of  # noqa: E402
+from pipeline.deck_view import deck_view  # noqa: E402
+from pipeline.design_review import review as design_review  # noqa: E402
 
 CONFIG = ROOT / "config"
 PROTOCOLS = paths.WORK / "protocols"
@@ -72,8 +75,9 @@ class Run:
     {"kind": "revise", "from", "note"} (a passing protocol and the change asked for)."""
 
     def __init__(self, source: Dict[str, Any], healer: str, model: Optional[str], max_rounds: int, feedback: str,
-                 escalate: bool = True):
+                 escalate: bool = True, target: str = "lab"):
         self.id = uuid.uuid4().hex[:8]
+        self.target = target  # "lab": the lab's labware, ready for AHC; "plr": precheck alone, PyLabRobot's catalog
         self.source = source
         self.healer, self.model, self.max_rounds, self.feedback = healer, model, max_rounds, feedback
         self.escalate = escalate  # let a repeating failure escalate to a knowledge-base proposal
@@ -122,7 +126,9 @@ def _protocol_for(run: Run):
     if src["kind"] == "protocol":
         return yaml.safe_load((PROTOCOLS / src["file"]).read_text()), src["file"], None
     deck_file = _instrument_deck_file()
-    base_deck = load_deck_config(str(ROOT / deck_file))  # the deck on the STARlet: needs resolve against it
+    # the deck its needs resolve against: the lab's STARlet, or an empty STAR deck (precheck alone); a revision keeps
+    # the target of the protocol it revises
+    base_deck = starting_deck(deck_file, run.target, src.get("from") if src["kind"] == "revise" else None)
     if src["kind"] == "text":
         run.emit("draft_request", {"what": "Drafting the protocol and choosing its labware with Claude"})
         d = draft(src.get("path") or src["text"], base_deck, deck_file=deck_file, out=io.StringIO())
@@ -270,7 +276,10 @@ def _settings(body: Dict[str, Any]) -> Dict[str, Any]:
     if feedback not in ("translated", "raw"):
         abort(Response(json.dumps({"error": "feedback must be 'translated' or 'raw'."}), 400, mimetype="application/json"))
     escalate = body.get("escalate", True)
-    return {"healer": healer, "model": body.get("model") or None, "feedback": feedback,
+    target = body.get("target", "lab")
+    if target not in ("lab", "plr"):
+        abort(Response(json.dumps({"error": "target must be 'lab' or 'plr'."}), 400, mimetype="application/json"))
+    return {"target": target, "healer": healer, "model": body.get("model") or None, "feedback": feedback,
             "max_rounds": max(1, min(int(body.get("max_rounds", 5)), 10)),
             "escalate": escalate not in (False, "false", "0", "")}
 
@@ -324,7 +333,7 @@ def revise_run(run_id: str):
     if not note:
         return jsonify({"error": "Say what to change."}), 400
     settings = {"healer": parent.healer, "model": parent.model, "feedback": parent.feedback,
-                "max_rounds": parent.max_rounds, "escalate": parent.escalate}
+                "max_rounds": parent.max_rounds, "escalate": parent.escalate, "target": parent.target}
     return _start(Run(source={"kind": "revise", "from": parent.passing, "name": parent.name, "note": note}, **settings))
 
 
@@ -439,8 +448,17 @@ def healed_setup(name: str):
     protocol = json.loads(path.read_text())
     deck_config = deck_config_for(protocol, ROOT)
     setup, gate = setup_checklist(protocol, deck_config), _gate(protocol, path.stem)
+    report_path = HEALED / f"{path.stem}_report.json"
+    report = json.loads(report_path.read_text()) if report_path.exists() else {}
+    if "outputs" not in report.get("review", {}):  # written before precheck found outputs: work them out now
+        report["review"] = design_review(protocol, deck_config)
+    report.setdefault("target", target_of(deck_config))
     return jsonify({
         "name": path.stem,
+        "target": report["target"],
+        "deck_view": deck_view(protocol, deck_config, report),
+        "outputs": report["review"]["outputs"],
+        "series": report["review"].get("series", False),
         "protocol": protocol,
         "gate": gate,
         "setup": setup,

@@ -280,7 +280,7 @@ def available(base_deck: Dict[str, Any], root: Path = ROOT) -> Dict[str, str]:
             on_deck.append(f"a 96-well plate of {r.get_item('A1').max_volume:.4g} uL wells ({spec.get('venus_type', spec['factory'])})")
         elif spec["kind"] == "container":
             on_deck.append(f"a container of {r.max_volume / 1000:g} mL")
-    entries = deck_builder.catalog(root)
+    entries = deck_builder.catalog(root, base_deck.get("catalog", "venus"))
 
     def sizes(kind: str, key: str, unit: float, fmt: str) -> str:
         values = sorted({round(e[key] / unit, 1) for e in entries if e["kind"] == kind})

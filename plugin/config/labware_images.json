@@ -1,0 +1,202 @@
+{
+  "description": "Photos shown when hovering a carrier or labware on the deck view. The first entry whose regex `match` finds the labware's type (VENUS type or PyLabRobot factory name, case-insensitive) and whose `kind` (if given) matches is used. Photos are freely licensed ones from Wikimedia Commons, linked rather than copied (`credit` and `license` are shown under them); they show the kind of labware, not necessarily the exact product. `product_page` is the manufacturer's or distributor's page for the exact item, where one is known. Manufacturer sites (hamiltoncompany.com) refuse automated fetches, so their own photos are not embedded.",
+  "commons": "https://commons.wikimedia.org/wiki/Special:FilePath/{file}?width=480",
+  "commons_page": "https://commons.wikimedia.org/wiki/File:{file}",
+  "photos": {
+    "star_deck": {
+      "file": "HamMlStarLqHnd.jpg",
+      "license": "CC0",
+      "credit": "Wikimedia Commons",
+      "caption": "Carriers on a Hamilton Microlab STAR deck"
+    },
+    "tip_boxes": {
+      "file": "Disposable Pipette Tips in Laboratory Tip Boxes.jpg",
+      "license": "CC BY-SA 4.0",
+      "credit": "Wikimedia Commons",
+      "caption": "Racks of 96 disposable tips"
+    },
+    "pcr_plate": {
+      "file": "96 well PCR plate-01.jpg",
+      "license": "CC BY-SA 3.0",
+      "credit": "Wikimedia Commons",
+      "caption": "A 96-well PCR plate"
+    },
+    "well_plate": {
+      "file": "96-well microplate.jpg",
+      "license": "CC BY-SA 4.0",
+      "credit": "Wikimedia Commons",
+      "caption": "A 96-well (deep-well) plate"
+    },
+    "microtubes": {
+      "file": "Labelled Eppendorf microcentrifuge tubes on rack.jpg",
+      "license": "CC BY-SA 4.0",
+      "credit": "Wikimedia Commons",
+      "caption": "1.5 mL microcentrifuge tubes"
+    },
+    "conical_tubes": {
+      "file": "Falcon tube.jpg",
+      "license": "CC BY-SA 4.0",
+      "credit": "Wikimedia Commons",
+      "caption": "Conical centrifuge tubes"
+    }
+  },
+  "rules": [
+    {
+      "match": "^TIP_CAR_480",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Framed tip rack landscape carrier (5 racks, 6 tracks)",
+      "product_page": "https://www.hamiltoncompany.com/automated-liquid-handling/other-robotics/182085"
+    },
+    {
+      "match": "^PLT_CAR_L5AC",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Deep-well plate landscape carrier (5 plates, 6 tracks)",
+      "product_page": "https://www.hamiltoncompany.com/other-robotics/182090"
+    },
+    {
+      "match": "^PLT_CAR_L5MD",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Microplate landscape carrier (5 plates, 6 tracks)",
+      "product_page": "https://www.hamiltoncompany.com/automated-liquid-handling/other-robotics/182365"
+    },
+    {
+      "match": "^PLT_CAR_L5PCR",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "96-well PCR plate carrier (5 plates)",
+      "product_page": "https://www.hamiltoncompany.com/other-robotics/182070"
+    },
+    {
+      "match": "^PLT_CAR",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Plate carrier"
+    },
+    {
+      "match": "^TIP_CAR",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Tip carrier"
+    },
+    {
+      "match": "^(RGT_CAR|Trough_CAR)",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Reagent trough carrier",
+      "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01"
+    },
+    {
+      "match": "^SMP_CAR_32|^Tube_CAR_32|tube_carrier_32",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "32-tube sample carrier (1 track)",
+      "product_page": "https://www.hamiltoncompany.com/product-specs/173410"
+    },
+    {
+      "match": "^SMP_CAR_24|^Tube_CAR_24",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "24-tube sample carrier (1 track)",
+      "product_page": "https://www.hamiltoncompany.com/product-specs/173400"
+    },
+    {
+      "match": "SMP_CAR|Tube_CAR|tube_carrier",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Sample tube carrier"
+    },
+    {
+      "match": ".",
+      "kind": "carrier",
+      "photo": "star_deck",
+      "name": "Carrier"
+    },
+    {
+      "match": "^HTF|1000uL",
+      "kind": "tip_rack",
+      "photo": "tip_boxes",
+      "name": "1000 uL CO-RE filter tips",
+      "product_page": "https://www.hamiltoncompany.com/consumables/1000-%C2%B5l-co-re-ii-conductive-tips"
+    },
+    {
+      "match": "^STF|300uL",
+      "kind": "tip_rack",
+      "photo": "tip_boxes",
+      "name": "300 uL CO-RE filter tips",
+      "product_page": "https://www.hamiltoncompany.com/disposable-tips/300-μl-conductive-non-sterile-filter-tips"
+    },
+    {
+      "match": "^LTF|50uL|^FTR",
+      "kind": "tip_rack",
+      "photo": "tip_boxes",
+      "name": "Low-volume CO-RE tips",
+      "product_page": "https://www.hamiltoncompany.com/consumables/50-μl-clear-filter-tips"
+    },
+    {
+      "match": ".",
+      "kind": "tip_rack",
+      "photo": "tip_boxes",
+      "name": "Tip rack"
+    },
+    {
+      "match": "Cos_96_PCR|PCR",
+      "kind": "plate",
+      "photo": "pcr_plate",
+      "name": "Corning Costar Thermowell 96-well PCR plate (6551)",
+      "product_page": "https://www.sigmaaldrich.com/US/en/product/sigma/cls6551"
+    },
+    {
+      "match": "DWP|deep|2mL|2ml|1300uL|08mL|1000ul|2200",
+      "kind": "plate",
+      "photo": "well_plate",
+      "name": "96 deep-well plate",
+      "product_page": "https://www.hamiltoncompany.com/consumables/deep-well-plates?part-number=235656"
+    },
+    {
+      "match": "Rack|RGT_96|tube",
+      "kind": "plate",
+      "photo": "microtubes",
+      "name": "96-position tube rack (tubes treated as wells)"
+    },
+    {
+      "match": ".",
+      "kind": "plate",
+      "photo": "well_plate",
+      "name": "96-well plate"
+    },
+    {
+      "match": "RGT_CONT|trough|reservoir",
+      "kind": "container",
+      "photo": "star_deck",
+      "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+      "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01"
+    },
+    {
+      "match": "EPIS|EPIL|Eppendorf|1_5ml|1500uL|1_5mL|2ml_Ub|microcentrifuge",
+      "kind": "container",
+      "photo": "microtubes",
+      "name": "1.5 / 2 mL microcentrifuge tube"
+    },
+    {
+      "match": "falcon|15mL|50mL|14mL|centrifuge_tube",
+      "kind": "container",
+      "photo": "conical_tubes",
+      "name": "Conical centrifuge tube"
+    },
+    {
+      "match": ".",
+      "kind": "container",
+      "photo": "star_deck",
+      "name": "Container"
+    },
+    {
+      "match": ".",
+      "kind": "trash",
+      "photo": "star_deck",
+      "name": "The deck's tip waste"
+    }
+  ]
+}
