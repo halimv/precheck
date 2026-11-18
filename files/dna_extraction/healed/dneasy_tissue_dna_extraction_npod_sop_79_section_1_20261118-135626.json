@@ -1,0 +1,1345 @@
+{
+  "protocol_name": "DNeasy tissue DNA extraction (nPOD SOP-79, section 1.0)",
+  "description": "Genomic DNA extraction from spleen or pancreas tissue with the DNeasy Blood & Tissue Kit for 8 samples. The robot adds Buffer ATL, proteinase K, Buffer AL, ethanol, AW1, AW2 and TE and moves the lysate onto the spin columns. The operator does the vortexing, the 56 \u00b0C lysis and all centrifugation off the deck.",
+  "assumptions": [
+    "8 samples are processed, one per row (A-H) of column 1.",
+    "The 1.5 ml microcentrifuge tubes with the tissue sit in positions A1-H1 of a 96-position rack, represented as the plate 'lysis_tubes' (1500 uL per position).",
+    "DNeasy Mini spin columns in 2 ml collection tubes sit in positions A1-H1 of a 96-position rack, represented as the plate 'spin_columns' (about 700 uL per column).",
+    "The whole mixture is taken as 600 uL (180 ATL + 20 proteinase K + 200 AL + 200 ethanol), moved in one 1000 uL tip aspiration. The operator moves any leftover liquid by hand when the rack comes off the deck.",
+    "Proteinase K is loaded into a small trough so that all 8 channels can draw at once. 1000 uL is loaded to cover the trough's dead volume.",
+    "Filter tips are used throughout, as the SOP lists filter pipette tips.",
+    "Fresh tips are used for every addition. Tips are dropped before every manual step.",
+    "The labware is taken off the deck for each vortex, incubation and centrifuge step and put back in the same position.",
+    "The incubation duration_min is an estimate (2 h, plus up to 2 more if digestion is incomplete)."
+  ],
+  "outside_run": [],
+  "labware": {
+    "tips_50": {
+      "kind": "tip_rack",
+      "tip_volume_ul": 50,
+      "filter": true,
+      "description": "50 uL filter tips for the 20 uL proteinase K addition"
+    },
+    "tips_300": {
+      "kind": "tip_rack",
+      "tip_volume_ul": 300,
+      "filter": true,
+      "description": "300 uL filter tips for Buffer ATL, Buffer AL, ethanol and TE additions"
+    },
+    "tips_1000": {
+      "kind": "tip_rack",
+      "tip_volume_ul": 1000,
+      "filter": true,
+      "description": "1000 uL filter tips for the lysate transfer and the AW1/AW2 washes"
+    },
+    "buffer_atl": {
+      "kind": "reservoir",
+      "min_capacity_ul": 3000,
+      "description": "Buffer ATL trough"
+    },
+    "proteinase_k": {
+      "kind": "reservoir",
+      "min_capacity_ul": 1500,
+      "description": "Proteinase K trough"
+    },
+    "buffer_al": {
+      "kind": "reservoir",
+      "min_capacity_ul": 4000,
+      "description": "Buffer AL trough"
+    },
+    "ethanol": {
+      "kind": "reservoir",
+      "min_capacity_ul": 4000,
+      "description": "100% ethanol trough"
+    },
+    "buffer_aw1": {
+      "kind": "reservoir",
+      "min_capacity_ul": 7000,
+      "description": "Buffer AW1 trough"
+    },
+    "buffer_aw2": {
+      "kind": "reservoir",
+      "min_capacity_ul": 7000,
+      "description": "Buffer AW2 trough"
+    },
+    "te_buffer": {
+      "kind": "reservoir",
+      "min_capacity_ul": 2000,
+      "description": "1x Tris-EDTA elution buffer trough"
+    },
+    "lysis_tubes": {
+      "kind": "plate",
+      "wells": 96,
+      "min_capacity_ul": 1500,
+      "description": "Rack of 1.5 ml microcentrifuge tubes with minced tissue, column 1 (A1-H1)"
+    },
+    "spin_columns": {
+      "kind": "plate",
+      "wells": 96,
+      "min_capacity_ul": 700,
+      "description": "Rack of DNeasy Mini spin columns in collection tubes, column 1 (A1-H1)"
+    },
+    "waste": {
+      "kind": "waste"
+    }
+  },
+  "reagents": {
+    "buffer_atl": "Buffer ATL (DNeasy Blood & Tissue Kit)",
+    "proteinase_k": "Proteinase K (DNeasy Blood & Tissue Kit)",
+    "buffer_al": "Buffer AL (DNeasy Blood & Tissue Kit)",
+    "ethanol": "100% ethanol (molecular biology grade)",
+    "buffer_aw1": "Buffer AW1 (DNeasy Blood & Tissue Kit, ethanol added)",
+    "buffer_aw2": "Buffer AW2 (DNeasy Blood & Tissue Kit, ethanol added)",
+    "te_buffer": "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)"
+  },
+  "initial_volumes_ul": {
+    "buffer_atl": 2000,
+    "proteinase_k": 1000,
+    "buffer_al": 2500,
+    "ethanol": 2500,
+    "buffer_aw1": 5000,
+    "buffer_aw2": 5000,
+    "te_buffer": 1200
+  },
+  "steps": [
+    {
+      "step": 1,
+      "action": "manual",
+      "labware": "lysis_tubes",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Place tissue in a 1.5 ml microcentrifuge tube for each of the 8 samples. Use 12-15 mg spleen or 25 mg pancreas. Mince further with sterile scissors or scalpel to aid digestion. Put the open tubes in positions A1-H1 of the lysis tube rack on the deck.",
+      "duration_min": 20,
+      "sop": [
+        "R1",
+        "R2",
+        "R3"
+      ],
+      "description": "Prepare tissue samples in 1.5 ml tubes"
+    },
+    {
+      "step": 2,
+      "action": "tips_on",
+      "labware": "tips_300",
+      "column": 1,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for Buffer ATL"
+    },
+    {
+      "step": 3,
+      "action": "aspirate",
+      "labware": "buffer_atl",
+      "volume_ul": 180,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate 180 uL Buffer ATL"
+    },
+    {
+      "step": 4,
+      "action": "dispense",
+      "labware": "lysis_tubes",
+      "column": 1,
+      "volume_ul": 180,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R4",
+      "description": "Add 180 uL Buffer ATL to each sample"
+    },
+    {
+      "step": 5,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 6,
+      "action": "tips_on",
+      "labware": "tips_50",
+      "column": 1,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for proteinase K"
+    },
+    {
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Drop the unused 50 uL tips mounted in step 6 into waste so 300 uL tips can be mounted for the proteinase K aspiration.",
+      "step": 7
+    },
+    {
+      "action": "tips_on",
+      "labware": "tips_300",
+      "column": 5,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up a fresh 300 uL filter tip column (column 5, unused so far) for the 20 uL proteinase K transfer.",
+      "step": 8
+    },
+    {
+      "action": "aspirate",
+      "labware": "proteinase_k",
+      "volume_ul": 20,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate 20 uL proteinase K per channel using the 300 uL tips, unchanged volume and reagent.",
+      "step": 9
+    },
+    {
+      "step": 10,
+      "action": "dispense",
+      "labware": "lysis_tubes",
+      "column": 1,
+      "volume_ul": 20,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R5",
+      "description": "Add 20 uL proteinase K to each sample"
+    },
+    {
+      "step": 11,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 12,
+      "action": "manual",
+      "labware": "lysis_tubes",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Cap the tubes, mix thoroughly by vortexing, then return the open tubes to positions A1-H1 on the deck.",
+      "duration_min": 3,
+      "sop": "R6",
+      "description": "Vortex after proteinase K"
+    },
+    {
+      "step": 13,
+      "action": "manual",
+      "labware": "lysis_tubes",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Incubate the capped tubes at 56\u00b0C in a hybridization oven with moderate rotation until tissue is completely lysed. Vortex well every 30 minutes. Check level of digestion at 2 hours; if digestion is incomplete, continue 1-2 more hours. Then return the tubes to positions A1-H1 on the deck.",
+      "duration_min": 150,
+      "sop": [
+        "R7",
+        "R8",
+        "R9",
+        "R10"
+      ],
+      "description": "Proteinase K lysis at 56 \u00b0C"
+    },
+    {
+      "step": 14,
+      "action": "manual",
+      "labware": "lysis_tubes",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Vortex the capped tubes 15 seconds, then return the open tubes to positions A1-H1 on the deck.",
+      "duration_min": 2,
+      "sop": "R11",
+      "description": "Vortex lysate 15 s"
+    },
+    {
+      "step": 15,
+      "action": "tips_on",
+      "labware": "tips_300",
+      "column": 2,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for Buffer AL"
+    },
+    {
+      "step": 16,
+      "action": "aspirate",
+      "labware": "buffer_al",
+      "volume_ul": 200,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate 200 uL Buffer AL"
+    },
+    {
+      "step": 17,
+      "action": "dispense",
+      "labware": "lysis_tubes",
+      "column": 1,
+      "volume_ul": 200,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R12",
+      "description": "Add 200 uL Buffer AL to each sample"
+    },
+    {
+      "step": 18,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 19,
+      "action": "manual",
+      "labware": "lysis_tubes",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Cap the tubes and vortex thoroughly, then return the open tubes to positions A1-H1 on the deck.",
+      "duration_min": 2,
+      "sop": "R13",
+      "description": "Vortex after Buffer AL"
+    },
+    {
+      "step": 20,
+      "action": "tips_on",
+      "labware": "tips_300",
+      "column": 3,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for ethanol"
+    },
+    {
+      "step": 21,
+      "action": "aspirate",
+      "labware": "ethanol",
+      "volume_ul": 200,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate 200 uL 100% ethanol"
+    },
+    {
+      "step": 22,
+      "action": "dispense",
+      "labware": "lysis_tubes",
+      "column": 1,
+      "volume_ul": 200,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R14",
+      "description": "Add 200 uL 100% ethanol to each sample"
+    },
+    {
+      "step": 23,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 24,
+      "action": "manual",
+      "labware": "lysis_tubes",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Cap the tubes and vortex again, then return the open tubes to positions A1-H1 on the deck.",
+      "duration_min": 2,
+      "sop": "R15",
+      "description": "Vortex after ethanol"
+    },
+    {
+      "step": 25,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Place 8 DNeasy Mini spin columns, each in a 2 ml collection tube, in positions A1-H1 of the spin column rack on the deck, lids open.",
+      "duration_min": 3,
+      "sop": "R16",
+      "description": "Set up spin columns in 2 ml collection tubes"
+    },
+    {
+      "step": 26,
+      "action": "tips_on",
+      "labware": "tips_1000",
+      "column": 1,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for lysate transfer"
+    },
+    {
+      "step": 27,
+      "action": "aspirate",
+      "labware": "lysis_tubes",
+      "column": 1,
+      "volume_ul": 600,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate the whole mixture (600 uL) from each sample tube"
+    },
+    {
+      "step": 28,
+      "action": "dispense",
+      "labware": "spin_columns",
+      "column": 1,
+      "volume_ul": 600,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R17",
+      "description": "Pipette the mixture into each DNeasy Mini spin column"
+    },
+    {
+      "step": 29,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 30,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Close the spin columns, centrifuge at \u22656000 x g for 1 minute. Discard flow-through and collection tube.",
+      "duration_min": 4,
+      "empties": [
+        {
+          "labware": "spin_columns",
+          "column": 1
+        }
+      ],
+      "sop": [
+        "R18",
+        "R19"
+      ],
+      "description": "Bind DNA to column"
+    },
+    {
+      "step": 31,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Place each DNeasy Mini spin column in a new 2 ml collection tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.",
+      "duration_min": 2,
+      "sop": "R20",
+      "description": "New collection tubes before AW1"
+    },
+    {
+      "step": 32,
+      "action": "tips_on",
+      "labware": "tips_1000",
+      "column": 2,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for Buffer AW1"
+    },
+    {
+      "step": 33,
+      "action": "aspirate",
+      "labware": "buffer_aw1",
+      "volume_ul": 500,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate 500 uL Buffer AW1"
+    },
+    {
+      "step": 34,
+      "action": "dispense",
+      "labware": "spin_columns",
+      "column": 1,
+      "volume_ul": 500,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R21",
+      "description": "Add 500 uL Buffer AW1 to each column"
+    },
+    {
+      "step": 35,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 36,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Close the spin columns, centrifuge for 1 minute at \u22656000 x g. Discard flow-through and collection tube.",
+      "duration_min": 4,
+      "empties": [
+        {
+          "labware": "spin_columns",
+          "column": 1
+        }
+      ],
+      "sop": [
+        "R22",
+        "R23"
+      ],
+      "description": "AW1 wash spin"
+    },
+    {
+      "step": 37,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Place each DNeasy column in a new 2 ml collection tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.",
+      "duration_min": 2,
+      "sop": "R24",
+      "description": "New collection tubes before AW2"
+    },
+    {
+      "step": 38,
+      "action": "tips_on",
+      "labware": "tips_1000",
+      "column": 3,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for Buffer AW2"
+    },
+    {
+      "step": 39,
+      "action": "aspirate",
+      "labware": "buffer_aw2",
+      "volume_ul": 500,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate 500 uL Buffer AW2"
+    },
+    {
+      "step": 40,
+      "action": "dispense",
+      "labware": "spin_columns",
+      "column": 1,
+      "volume_ul": 500,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R25",
+      "description": "Add 500 uL Buffer AW2 to each column"
+    },
+    {
+      "step": 41,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 42,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Close the spin columns, centrifuge for 3 minutes at 20,000 x g to dry the DNeasy membrane. Discard flow-through and collection tube.",
+      "duration_min": 6,
+      "empties": [
+        {
+          "labware": "spin_columns",
+          "column": 1
+        }
+      ],
+      "sop": [
+        "R26",
+        "R27"
+      ],
+      "description": "Dry membrane spin"
+    },
+    {
+      "step": 43,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Place each DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.",
+      "duration_min": 2,
+      "sop": "R28",
+      "description": "Columns into new 1.5 ml elution tubes"
+    },
+    {
+      "step": 44,
+      "action": "tips_on",
+      "labware": "tips_300",
+      "column": 4,
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Pick up tips for TE"
+    },
+    {
+      "step": 45,
+      "action": "aspirate",
+      "labware": "te_buffer",
+      "volume_ul": 100,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Aspirate 100 uL 1x Tris-EDTA"
+    },
+    {
+      "step": 46,
+      "action": "dispense",
+      "labware": "spin_columns",
+      "column": 1,
+      "volume_ul": 100,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "sop": "R29",
+      "description": "Add 100 uL 1x Tris-EDTA buffer to the center of each spin column membrane"
+    },
+    {
+      "step": 47,
+      "action": "tips_off",
+      "labware": "waste",
+      "volume_ul": 0,
+      "channels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "description": "Discard tips"
+    },
+    {
+      "step": 48,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Incubate at room temperature for 5 minutes.",
+      "duration_min": 5,
+      "sop": "R30",
+      "description": "Elution buffer incubation"
+    },
+    {
+      "step": 49,
+      "action": "manual",
+      "labware": "spin_columns",
+      "volume_ul": 0,
+      "channels": [
+        0
+      ],
+      "instruction": "Close the spin columns and centrifuge for 1 minute at \u22656000 x g to elute DNA. Keep the 1.5 ml tubes with the eluted DNA and discard the spin columns.",
+      "duration_min": 4,
+      "empties": [
+        {
+          "labware": "spin_columns",
+          "column": 1
+        }
+      ],
+      "sop": "R31",
+      "description": "Elute DNA"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "R1",
+      "section": "1.1",
+      "kind": "step",
+      "what": "place tissue in microcentrifuge tube",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 1.5,
+          "unit": "ml"
+        }
+      ],
+      "quote": "Place tissue in a 1.5 ml microcentrifuge tube."
+    },
+    {
+      "id": "R2",
+      "section": "1.1.1",
+      "kind": "step",
+      "what": "tissue amount: spleen or pancreas",
+      "volume_ul": null,
+      "values": [
+        {
+          "min": 12,
+          "max": 15,
+          "unit": "mg"
+        },
+        {
+          "value": 25,
+          "unit": "mg"
+        }
+      ],
+      "quote": "Use 12-15 mg spleen or 25 mg pancreas."
+    },
+    {
+      "id": "R3",
+      "section": "1.1.2",
+      "kind": "step",
+      "what": "mince tissue with sterile scissors or scalpel",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Mince further with sterile scissors or scalpel to aid digestion."
+    },
+    {
+      "id": "R4",
+      "section": "1.2",
+      "kind": "addition",
+      "what": "Buffer ATL",
+      "volume_ul": 180,
+      "values": [],
+      "quote": "Add 180 \u00b5l Buffer ATL."
+    },
+    {
+      "id": "R5",
+      "section": "1.3",
+      "kind": "addition",
+      "what": "proteinase K",
+      "volume_ul": 20,
+      "values": [],
+      "quote": "Add 20 \u00b5l proteinase K and mix thoroughly by vortexing."
+    },
+    {
+      "id": "R6",
+      "section": "1.3",
+      "kind": "step",
+      "what": "mix thoroughly by vortexing",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Add 20 \u00b5l proteinase K and mix thoroughly by vortexing."
+    },
+    {
+      "id": "R7",
+      "section": "1.4",
+      "kind": "step",
+      "what": "incubate in hybridization oven with moderate rotation until tissue completely lysed",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 56,
+          "unit": "C"
+        }
+      ],
+      "quote": "Incubate at 56\u00b0C in a hybridization oven with moderate rotation until tissue is completely lysed."
+    },
+    {
+      "id": "R8",
+      "section": "1.4.1",
+      "kind": "step",
+      "what": "vortex well periodically during incubation",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 30,
+          "unit": "min"
+        }
+      ],
+      "quote": "Vortex well every 30 minutes."
+    },
+    {
+      "id": "R9",
+      "section": "1.4.2",
+      "kind": "step",
+      "what": "check level of digestion",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 2,
+          "unit": "h"
+        }
+      ],
+      "quote": "Check level of digestion at 2 hours."
+    },
+    {
+      "id": "R10",
+      "section": "1.4.2",
+      "kind": "step",
+      "what": "if digestion incomplete, continue incubation",
+      "volume_ul": null,
+      "values": [
+        {
+          "min": 1,
+          "max": 2,
+          "unit": "h"
+        }
+      ],
+      "quote": "If digestion is incomplete, continue 1-2 more hours."
+    },
+    {
+      "id": "R11",
+      "section": "1.5",
+      "kind": "step",
+      "what": "vortex",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 15,
+          "unit": "s"
+        }
+      ],
+      "quote": "Vortex 15 seconds, then add 200 \u00b5l Buffer AL and vortex thoroughly."
+    },
+    {
+      "id": "R12",
+      "section": "1.5",
+      "kind": "addition",
+      "what": "Buffer AL",
+      "volume_ul": 200,
+      "values": [],
+      "quote": "Vortex 15 seconds, then add 200 \u00b5l Buffer AL and vortex thoroughly."
+    },
+    {
+      "id": "R13",
+      "section": "1.5",
+      "kind": "step",
+      "what": "vortex thoroughly",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Vortex 15 seconds, then add 200 \u00b5l Buffer AL and vortex thoroughly."
+    },
+    {
+      "id": "R14",
+      "section": "1.6",
+      "kind": "addition",
+      "what": "100% ethanol",
+      "volume_ul": 200,
+      "values": [],
+      "quote": "Add 200 \u00b5l 100% ethanol and vortex again."
+    },
+    {
+      "id": "R15",
+      "section": "1.6",
+      "kind": "step",
+      "what": "vortex again",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Add 200 \u00b5l 100% ethanol and vortex again."
+    },
+    {
+      "id": "R16",
+      "section": "1.7",
+      "kind": "step",
+      "what": "DNeasy Mini spin column placed in collection tube",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 2,
+          "unit": "ml"
+        }
+      ],
+      "quote": "Pipette the mixture into a DNeasy Mini spin column placed in a 2 ml collection tube."
+    },
+    {
+      "id": "R17",
+      "section": "1.7",
+      "kind": "addition",
+      "what": "the mixture (into DNeasy Mini spin column)",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Pipette the mixture into a DNeasy Mini spin column placed in a 2 ml collection tube."
+    },
+    {
+      "id": "R18",
+      "section": "1.8",
+      "kind": "step",
+      "what": "centrifuge",
+      "volume_ul": null,
+      "values": [
+        {
+          "min": 6000,
+          "unit": "x g"
+        },
+        {
+          "value": 1,
+          "unit": "min"
+        }
+      ],
+      "quote": "Centrifuge at \u22656000 x g for 1 minute."
+    },
+    {
+      "id": "R19",
+      "section": "1.8",
+      "kind": "step",
+      "what": "discard flow-through and collection tube",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Discard flow-through and collection tube."
+    },
+    {
+      "id": "R20",
+      "section": "1.9",
+      "kind": "step",
+      "what": "place spin column in new collection tube",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 2,
+          "unit": "ml"
+        }
+      ],
+      "quote": "Place the DNeasy Mini spin column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW1 to column."
+    },
+    {
+      "id": "R21",
+      "section": "1.9",
+      "kind": "addition",
+      "what": "Buffer AW1",
+      "volume_ul": 500,
+      "values": [],
+      "quote": "Place the DNeasy Mini spin column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW1 to column."
+    },
+    {
+      "id": "R22",
+      "section": "1.10",
+      "kind": "step",
+      "what": "centrifuge",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 1,
+          "unit": "min"
+        },
+        {
+          "min": 6000,
+          "unit": "x g"
+        }
+      ],
+      "quote": "Centrifuge for 1 minute at \u22656000 x g."
+    },
+    {
+      "id": "R23",
+      "section": "1.10",
+      "kind": "step",
+      "what": "discard flow-through and collection tube",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Discard flow-through and collection tube."
+    },
+    {
+      "id": "R24",
+      "section": "1.11",
+      "kind": "step",
+      "what": "place column in new collection tube",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 2,
+          "unit": "ml"
+        }
+      ],
+      "quote": "Place the DNeasy column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW2."
+    },
+    {
+      "id": "R25",
+      "section": "1.11",
+      "kind": "addition",
+      "what": "Buffer AW2",
+      "volume_ul": 500,
+      "values": [],
+      "quote": "Place the DNeasy column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW2."
+    },
+    {
+      "id": "R26",
+      "section": "1.12",
+      "kind": "step",
+      "what": "centrifuge to dry DNeasy membrane",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 3,
+          "unit": "min"
+        },
+        {
+          "value": 20000,
+          "unit": "x g"
+        }
+      ],
+      "quote": "Centrifuge for 3 minutes at 20,000 x g to dry the DNeasy membrane."
+    },
+    {
+      "id": "R27",
+      "section": "1.12",
+      "kind": "step",
+      "what": "discard flow-through and collection tube",
+      "volume_ul": null,
+      "values": [],
+      "quote": "Discard flow-through and collection tube."
+    },
+    {
+      "id": "R28",
+      "section": "1.13",
+      "kind": "step",
+      "what": "place spin column in new microcentrifuge tube",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 1.5,
+          "unit": "ml"
+        }
+      ],
+      "quote": "Place DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and add 100 \u00b5l 1x Tris-EDTA buffer to the center of the spin column membrane."
+    },
+    {
+      "id": "R29",
+      "section": "1.13",
+      "kind": "addition",
+      "what": "1x Tris-EDTA buffer (to the center of the spin column membrane)",
+      "volume_ul": 100,
+      "values": [],
+      "quote": "Place DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and add 100 \u00b5l 1x Tris-EDTA buffer to the center of the spin column membrane."
+    },
+    {
+      "id": "R30",
+      "section": "1.14",
+      "kind": "step",
+      "what": "incubate at room temperature",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 5,
+          "unit": "min"
+        }
+      ],
+      "quote": "Incubate at room temperature for 5 minutes and then centrifuge for 1 minute at \u22656000 x g to elute DNA."
+    },
+    {
+      "id": "R31",
+      "section": "1.14",
+      "kind": "step",
+      "what": "centrifuge to elute DNA",
+      "volume_ul": null,
+      "values": [
+        {
+          "value": 1,
+          "unit": "min"
+        },
+        {
+          "min": 6000,
+          "unit": "x g"
+        }
+      ],
+      "quote": "Incubate at room temperature for 5 minutes and then centrifuge for 1 minute at \u22656000 x g to elute DNA."
+    }
+  ],
+  "requirements_scope": {
+    "covered": "Section 1.0 DNA Extraction from Tissue (fresh or snap frozen tissue), steps 1.1 through 1.14",
+    "left_out": [
+      "Section 2.0 DNA Extraction from OCT Blocks (alternative sample preparation that joins at step 1.2)",
+      "Section 3.0 DNA Extraction from Formalin-fixed Paraffin-embedded Tissue Sections (alternative xylene/ethanol deparaffinization and overnight digestion, which joins at step 1.5)",
+      "Section 4.0 Quantification and Quality Analysis (step 1.15 points to it; spectrophotometer measurement, data analysis, concentration adjustment, aliquoting and -80\u00b0C storage)",
+      "Safety policy, equipment list and references sections"
+    ],
+    "quotes_checked": true
+  },
+  "deck_config": "decks/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626.json",
+  "source": {
+    "name": "OPPC-SOP-79.1-DNA-Extraction",
+    "text": "Page 1 of 4 \n \n \n \n \nSTANDARD OPERATING PROCEDURE \nDNA Extraction \nOPPC-SOP-79 \n \n \n \n \nPrepared by:  Maria Beery and Stephen Selman Original Effective Date: 05/05/2011 \nRevised by: N/A Version Effective Date: 08/15/2016 \nReviewed by: Maria Beery Reviewed Date: 04/15/2021 \nApproved by:  Irina Kusmartseva Approved Date: 05/06/2021 \n \n \n \n \nCurrent Version:  79.1 \nNo. of Versions: 2 \nNo. Pages:  4 \nAssociated Forms: N/A \n \n \n \n \n \n \n \n \n \n \nNetwork for Pancreatic Organ Donation with Diabetes (nPOD) \nBMSB Room J586 \nP.O. BOX 100275 \nGainesville, FL 32610 \nJDRF nPOD Standard Operating Procedure \nSOP Number and Version: 79.1          Supersedes: 79.0 DNA EXTRACTION \nOriginal Effective Date: 05/05/11 \nVersion Effective Date: 08/15/16 Page 2 of 4 \n \n \nDNA EXTRACTION \n \n \nPOLICY: Use universal safety precautions when handling human samples and personal \nprotective equipment (e.g., face mask with shield, gloves, lab coat or apron).  Use \nchemical and physical safety precautions when working with paraformaldehyde \nand sharps, respectively. \n \nBuffer AL and AW1 contain guanidine hydrochloride, which can form highly reactive \ncompounds when combined with bleach.  Clean affected areas or spills with \nlaboratory detergent and water, then 1% (v/v) sodium hypochlorite. \n \nPURPOSE: The purpose of this Standard Operating Procedure (SOP) is to outline procedures \nfor extracting high quality genomic DNA from nPOD samples.  \n \nSCOPE: This SOP will be applied to the extraction of DNA from fresh or snap frozen tissue, \nOCT-embedded frozen blocks, and formalin-fixed, paraffin-embedded blocks. \n \nRESPOSIBILITIES: Managers and supervisors - are responsible for making sure that technicians are \nproperly trained and equipment and facility are maintained in good working order. \n \nLaboratory personnel - are responsible for reading and understanding this SOP and \nrelated documents and to perform these tasks in accordance with the SOPs. They \nare responsible for following clinical laboratory and tissue banking best practices. \n \nEQUIPMENT & \nMATERIALS: \nThe materials, equipment and forms in the following list are recommendations only \nand alternative products may be substituted for the site specific task or procedure. \n \n\u2022 DNeasy Blood & Tissue Kit (Qiagen, Cat. No. 69504) \n\u2022 Disposable Scalpel, #11 (FisherSci, Cat. No. NC0134996) \n\u2022 Microtube 1.5ml (VWR, Cat. No. 10025-726) \n\u2022 Microcentrifuge \n\u2022 Microcentrifuge tube racks \n\u2022 Vortex mixer \n\u2022 Hybridization oven or incubator, 56\u00b0C \n\u2022 1x Tris-EDTA, DNase/RNase- free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA) \n(Fisher Cat. No. BP2473) \n\u2022 100 % Ethanol (Molecular Biology Grade) \n\u2022 Xylene \n\u2022 Absorbent towels \n\u2022 Spectrophotometer (BioTek Epoch) \n\u2022 Take3 Micro-volume plate (BioTek) \n\u2022 Micropipettes and filter pipette tips (10\u00b5l, 200\u00b5l, 1000\u00b5l) \n\u2022 Nitrile gloves \n\u2022 Safety glasses \n\u2022 Disposable laboratory coats \nJDRF nPOD Standard Operating Procedure \nSOP Number and Version: 79.1          Supersedes: 79.0 DNA EXTRACTION \nOriginal Effective Date: 05/05/11 \nVersion Effective Date: 08/15/16 Page 3 of 4 \n \nPROCEDURE:  \n \n1.0 DNA Extraction from Tissue  \n1.1 Place tissue in a 1.5 ml microcentrifuge tube. \n1.1.1 Use 12-15 mg spleen or 25 mg pancreas. \n1.1.2 Mince further with sterile scissors or scalpel to aid digestion. \n1.2 Add 180 \u00b5l Buffer ATL. \n1.3 Add 20 \u00b5l proteinase K and mix thoroughly by vortexing. \n1.4 Incubate at 56\u00b0C in a hybridization oven with moderate rotation until tissue is \ncompletely lysed. \n1.4.1 Vortex well every 30 minutes. \n1.4.2 Check level of digestion at 2 hours.  If digestion is incomplete, continue 1-2 \nmore hours. \n1.5 Vortex 15 seconds, then add 200 \u00b5l Buffer AL and vortex thoroughly. \n1.6 Add 200 \u00b5l 100% ethanol and vortex again. \n1.7 Pipette the mixture into a DNeasy Mini spin column placed in a 2 ml collection tube. \n1.8 Centrifuge at \u22656000 x g for 1 minute.  Discard flow-through and collection tube. \n1.9 Place the DNeasy Mini spin column in a new 2 ml collection tube and add 500 \u00b5l Buffer \nAW1 to column. \n1.10 Centrifuge for 1 minute at \u22656000 x g.  Discard flow-through and collection tube. \n1.11 Place the DNeasy column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW2. \n1.12 Centrifuge for 3 minutes at 20,000 x g to dry the DNeasy membrane.  Discard flow-\nthrough and collection tube. \n1.13 Place DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and add 100 \u00b5l 1x \nTris-EDTA buffer to the center of the spin column membrane. \n1.14 Incubate at room temperature for 5 minutes and then centrifuge for 1 minute at \u22656000 \nx g to elute DNA. \n1.15 Proceed to section 4 for quantification and storage. \n \n2.0 DNA Extraction from OCT Blocks \n2.1 Section several thick sections of tissue under DNase-free conditions and place in \nmicrofuge tube. Proceed to step 1.2 above. \n \n3.0 DNA Extraction from Formalin-fixed Paraffin-embedded Tissue Sections \n3.1 Dissect a small amount of tissue with paraffin from block (0.3 x 0.3 x 0.3 cm3) using \nsterile disposable scalpel.  Cut the tissue into 5-6 equal pieces and place into a \nmicrocentrifuge tube. \n3.2  Add 1200 \u00b5l of xylene and incubate at room temperature for 2 minutes. \n3.3 Centrifuge at 20,000 x g for 5 minutes. \n3.4 Aspirate off the xylene and place tissue pieces on absorbent towels to dry. \n3.5 Weigh the tissue. \n3.5.1 Use 7.5-12 mg of tissue for each preparation. \n3.6 Finely mince the tissue with sterile scissors or scalpel to aid in digestion. \n3.7 Place all minced tissue in microcentrifuge tube and repeat step 6.3.2. \n3.8 Aspirate off the xylene and wash the tissue in 1200 \u00b5l of 100% ethanol.  Spin at 20,000 x \ng for 5 minutes and aspirate ethanol. \nJDRF nPOD Standard Operating Procedure \nSOP Number and Version: 79.1          Supersedes: 79.0 DNA EXTRACTION \nOriginal Effective Date: 05/05/11 \nVersion Effective Date: 08/15/16 Page 4 of 4 \n \n3.9 Wash a second time with 1200 \u00b5l of 100% ethanol.  Spin at 20,000 x g for 5 minutes and \naspirate ethanol. \n3.10 Incubate the open microcentrifuge tube at 37\u2070C for 15 minutes until the ethanol has \nevaporated. \n3.11 Re-suspend the tissue pellet in 180 \u00b5l ATL buffer. \n3.12 Add 20 \u00b5l of proteinase K, mix by vortexing, and incubate in the hybridization oven with \nrotation at 56\u2070C overnight until completely digested.  Vortex occasionally during \nincubation. \n3.13 Proceed to step 1.5. \n \n \n4.0 Quantification and Quality Analysis \n4.1 Measure optical density at 260 nm wavelength with a spectrophotometer and micro-\nvolume plate, using 2\u00b5l per sample per microspot.  Determine the A260/A280 nm \nwavelength ratio, which should be 1.8 \u2013 2.0 for high quality DNA preparations.  \n4.2 Save all raw data.  Import into the DNA Calculator Excel file to show A260/A280 ratio, \nstock DNA concentration (ng/\u00b5l), extraction volume (\u00b5l), and total DNA yield (ng). \n4.3 Adjust DNA concentration to end-user specifications using 1x Tris-EDTA buffer and \naliquot stock to avoid multiple thaw/freeze cycles.  \n4.3.1 Expected yield from 10-15 mg spleen is 10-30 \u00b5g DNA.  \n4.4 Freeze DNA and store at -80\u00b0C according to SOP Tissue Sample Archiving. \n \n \nREFERENCES: \n \n1.0 Related Documents and Procedure \n1.1 Qiagen DNeasy Blood & Tissue Kit protocol \n1.2 Biotek Epoch and Take3 Plate Manuals \n1.3 SOP Tissue Sample Archiving \n \n \nREVISION HISTORY \n \n \n \n \n Name Signature Date \nPrepared by: Maria Beery and Stephen Selman  07/28/2016 \nApproved by: Irina Kusmartseva  08/15/2016 \n \nVersion Date Revision \n1 07/28/2016 Updated materials, reagents, procedure, and quantification"
+  }
+}

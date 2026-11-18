@@ -1,0 +1,1513 @@
+{
+  "status": "HEALED",
+  "name": "dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626",
+  "target": "plr",
+  "protocol_name": "DNeasy tissue DNA extraction (nPOD SOP-79, section 1.0)",
+  "steps": 49,
+  "repair_rounds": 1,
+  "simulated_on": "PyLabRobot's STAR model, configured as this instrument",
+  "files": {
+    "ir": "healed/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626.json",
+    "script": "healed/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626_plr.py",
+    "heal_log": "healed/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626_heal_log.json",
+    "ahc_layout": "healed/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626.ahc_layout.yaml",
+    "summary": "healed/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626_summary.md",
+    "report": "healed/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626_report.json"
+  },
+  "review": {
+    "protocol": "DNeasy tissue DNA extraction (nPOD SOP-79, section 1.0)",
+    "deck": "decks/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626.json",
+    "assumptions": [
+      "8 samples are processed, one per row (A-H) of column 1.",
+      "The 1.5 ml microcentrifuge tubes with the tissue sit in positions A1-H1 of a 96-position rack, represented as the plate 'lysis_tubes' (1500 uL per position).",
+      "DNeasy Mini spin columns in 2 ml collection tubes sit in positions A1-H1 of a 96-position rack, represented as the plate 'spin_columns' (about 700 uL per column).",
+      "The whole mixture is taken as 600 uL (180 ATL + 20 proteinase K + 200 AL + 200 ethanol), moved in one 1000 uL tip aspiration. The operator moves any leftover liquid by hand when the rack comes off the deck.",
+      "Proteinase K is loaded into a small trough so that all 8 channels can draw at once. 1000 uL is loaded to cover the trough's dead volume.",
+      "Filter tips are used throughout, as the SOP lists filter pipette tips.",
+      "Fresh tips are used for every addition. Tips are dropped before every manual step.",
+      "The labware is taken off the deck for each vortex, incubation and centrifuge step and put back in the same position.",
+      "The incubation duration_min is an estimate (2 h, plus up to 2 more if digestion is incomplete)."
+    ],
+    "labware": [
+      {
+        "name": "waste",
+        "kind": "trash",
+        "type": "tip waste",
+        "where": "the deck's tip waste",
+        "holds": null
+      },
+      {
+        "name": "tips_50",
+        "kind": "tip_rack",
+        "type": "hamilton_96_tiprack_50uL_filter",
+        "where": "TIP_CAR_480 at rail 1, position 1",
+        "holds": null
+      },
+      {
+        "name": "tips_300",
+        "kind": "tip_rack",
+        "type": "hamilton_96_tiprack_300uL_filter",
+        "where": "TIP_CAR_480 at rail 1, position 2",
+        "holds": null
+      },
+      {
+        "name": "tips_1000",
+        "kind": "tip_rack",
+        "type": "hamilton_96_tiprack_1000uL_filter",
+        "where": "TIP_CAR_480 at rail 1, position 3",
+        "holds": null
+      },
+      {
+        "name": "buffer_atl",
+        "kind": "container",
+        "type": "hamilton_1_trough_60mL_Vb",
+        "where": "Trough_CAR_5R60_A00 at rail 7, position 1",
+        "holds": "Buffer ATL (DNeasy Blood & Tissue Kit)"
+      },
+      {
+        "name": "proteinase_k",
+        "kind": "container",
+        "type": "hamilton_1_trough_60mL_Vb",
+        "where": "Trough_CAR_5R60_A00 at rail 7, position 2",
+        "holds": "Proteinase K (DNeasy Blood & Tissue Kit)"
+      },
+      {
+        "name": "buffer_al",
+        "kind": "container",
+        "type": "hamilton_1_trough_60mL_Vb",
+        "where": "Trough_CAR_5R60_A00 at rail 7, position 3",
+        "holds": "Buffer AL (DNeasy Blood & Tissue Kit)"
+      },
+      {
+        "name": "ethanol",
+        "kind": "container",
+        "type": "hamilton_1_trough_60mL_Vb",
+        "where": "Trough_CAR_5R60_A00 at rail 7, position 4",
+        "holds": "100% ethanol (molecular biology grade)"
+      },
+      {
+        "name": "buffer_aw1",
+        "kind": "container",
+        "type": "hamilton_1_trough_60mL_Vb",
+        "where": "Trough_CAR_5R60_A00 at rail 8, position 1",
+        "holds": "Buffer AW1 (DNeasy Blood & Tissue Kit, ethanol added)"
+      },
+      {
+        "name": "buffer_aw2",
+        "kind": "container",
+        "type": "hamilton_1_trough_60mL_Vb",
+        "where": "Trough_CAR_5R60_A00 at rail 8, position 2",
+        "holds": "Buffer AW2 (DNeasy Blood & Tissue Kit, ethanol added)"
+      },
+      {
+        "name": "te_buffer",
+        "kind": "container",
+        "type": "hamilton_1_trough_60mL_Vb",
+        "where": "Trough_CAR_5R60_A00 at rail 8, position 3",
+        "holds": "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)"
+      },
+      {
+        "name": "lysis_tubes",
+        "kind": "plate",
+        "type": "Cor_96_wellplate_2mL_Vb",
+        "where": "PLT_CAR_L5MD at rail 9, position 1",
+        "holds": null
+      },
+      {
+        "name": "spin_columns",
+        "kind": "plate",
+        "type": "eppendorf_96_wellplate_1000ul_Vb",
+        "where": "PLT_CAR_L5MD at rail 9, position 2",
+        "holds": null
+      }
+    ],
+    "reagents": [
+      {
+        "labware": "buffer_atl",
+        "reagent": "Buffer ATL (DNeasy Blood & Tissue Kit)",
+        "loaded_ul": 2000,
+        "drawn_ul": 1440.0,
+        "left_ul": 560.0,
+        "capacity_ul": 60000
+      },
+      {
+        "labware": "proteinase_k",
+        "reagent": "Proteinase K (DNeasy Blood & Tissue Kit)",
+        "loaded_ul": 1000,
+        "drawn_ul": 160.0,
+        "left_ul": 840.0,
+        "capacity_ul": 60000
+      },
+      {
+        "labware": "buffer_al",
+        "reagent": "Buffer AL (DNeasy Blood & Tissue Kit)",
+        "loaded_ul": 2500,
+        "drawn_ul": 1600.0,
+        "left_ul": 900.0,
+        "capacity_ul": 60000
+      },
+      {
+        "labware": "ethanol",
+        "reagent": "100% ethanol (molecular biology grade)",
+        "loaded_ul": 2500,
+        "drawn_ul": 1600.0,
+        "left_ul": 900.0,
+        "capacity_ul": 60000
+      },
+      {
+        "labware": "buffer_aw1",
+        "reagent": "Buffer AW1 (DNeasy Blood & Tissue Kit, ethanol added)",
+        "loaded_ul": 5000,
+        "drawn_ul": 4000.0,
+        "left_ul": 1000.0,
+        "capacity_ul": 60000
+      },
+      {
+        "labware": "buffer_aw2",
+        "reagent": "Buffer AW2 (DNeasy Blood & Tissue Kit, ethanol added)",
+        "loaded_ul": 5000,
+        "drawn_ul": 4000.0,
+        "left_ul": 1000.0,
+        "capacity_ul": 60000
+      },
+      {
+        "labware": "te_buffer",
+        "reagent": "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)",
+        "loaded_ul": 1200,
+        "drawn_ul": 800.0,
+        "left_ul": 400.0,
+        "capacity_ul": 60000
+      }
+    ],
+    "wells": [
+      {
+        "plate": "lysis_tubes",
+        "column": 1,
+        "rows": "ABCDEFGH",
+        "volume_ul": 0.0,
+        "contents": {},
+        "flags": []
+      },
+      {
+        "plate": "spin_columns",
+        "column": 1,
+        "rows": "ABCDEFGH",
+        "volume_ul": 0,
+        "contents": {},
+        "flags": []
+      }
+    ],
+    "outputs": [
+      {
+        "labware": "spin_columns",
+        "kind": "plate",
+        "named_by_protocol": false,
+        "wells": [
+          {
+            "well": "A1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          },
+          {
+            "well": "B1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          },
+          {
+            "well": "C1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          },
+          {
+            "well": "D1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          },
+          {
+            "well": "E1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          },
+          {
+            "well": "F1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          },
+          {
+            "well": "G1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          },
+          {
+            "well": "H1",
+            "ul": 100.0,
+            "contents": {
+              "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)": 100.0
+            }
+          }
+        ],
+        "total_ul": 800.0,
+        "leaves_deck": "Close the spin columns and centrifuge for 1 minute at \u22656000 x g to elute DNA. Keep the 1.5 ml tubes with the eluted DNA and discard the spin columns.",
+        "rows": 8,
+        "columns": 12
+      }
+    ],
+    "series": false,
+    "limits": {
+      "lysis_tubes": {
+        "min_ul": 30,
+        "max_ul": 2153.7,
+        "capacity_ul": 2393.0,
+        "source": "capacity from PyLabRobot Cor_96_wellplate_2mL_Vb; dead volume and fill fraction from config/precheck_policy.json"
+      },
+      "spin_columns": {
+        "min_ul": 30,
+        "max_ul": 1423.5,
+        "capacity_ul": 1581.7,
+        "source": "capacity from PyLabRobot eppendorf_96_wellplate_1000ul_Vb; dead volume and fill fraction from config/precheck_policy.json"
+      }
+    },
+    "policy": {
+      "dead_volume_ul": 30,
+      "max_fill_fraction": 0.9,
+      "by_type": {}
+    },
+    "tips": {
+      "used": 72,
+      "columns": {
+        "tips_300": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "tips_50": [
+          1
+        ],
+        "tips_1000": [
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    "steps": 49,
+    "channels": 8
+  },
+  "suggestions": [
+    {
+      "id": "reagent_overloaded",
+      "steps": [],
+      "title": "'proteinase_k' is loaded with 1000 uL but the plan draws 160 uL",
+      "detail": "840 uL would be left over. About 200 uL covers the plan with 20% to spare; a container's own dead volume comes on top of that.",
+      "request": "Load 200 uL in 'proteinase_k' instead of 1000 uL, if the container's dead volume allows."
+    },
+    {
+      "id": "liquid_too_shallow",
+      "steps": [],
+      "title": "'te_buffer' starts 3.7 mm deep and ends 1.8 mm deep",
+      "detail": "1200 uL spreads thin in this container. Below about 2 mm a tip draws air or misses the liquid; the simulator checks volume, not depth. Load more, or use a narrower container (a tube) for a small volume.",
+      "request": "Keep at least 2 mm of liquid in 'te_buffer' to the end of the run: load more, or move this reagent to a container narrow enough for its volume."
+    }
+  ],
+  "ahc": {
+    "accepted_types_from": "ahc: src/ahc/devices/hamilton/starlet.md",
+    "not_on_layout": [
+      "carrier TIP_CAR_480_1 (TIP_CAR_480, rail 1) is not a carrier AHC accepts",
+      "carrier Trough_CAR_5R60_A00_7 (Trough_CAR_5R60_A00, rail 7) is not a carrier AHC accepts",
+      "carrier Trough_CAR_5R60_A00_8 (Trough_CAR_5R60_A00, rail 8) is not a carrier AHC accepts",
+      "carrier PLT_CAR_L5MD_9 (PLT_CAR_L5MD, rail 9) is not a carrier AHC accepts",
+      "the 2000 uL loaded in buffer_atl has no place in the AHC layout",
+      "the 1000 uL loaded in proteinase_k has no place in the AHC layout",
+      "the 2500 uL loaded in buffer_al has no place in the AHC layout",
+      "the 2500 uL loaded in ethanol has no place in the AHC layout",
+      "the 5000 uL loaded in buffer_aw1 has no place in the AHC layout",
+      "the 5000 uL loaded in buffer_aw2 has no place in the AHC layout",
+      "the 1200 uL loaded in te_buffer has no place in the AHC layout"
+    ],
+    "differs_from_venus": []
+  },
+  "manual_steps": [
+    {
+      "step": 1,
+      "instruction": "Place tissue in a 1.5 ml microcentrifuge tube for each of the 8 samples. Use 12-15 mg spleen or 25 mg pancreas. Mince further with sterile scissors or scalpel to aid digestion. Put the open tubes in positions A1-H1 of the lysis tube rack on the deck.",
+      "labware": "lysis_tubes",
+      "duration_min": 20
+    },
+    {
+      "step": 12,
+      "instruction": "Cap the tubes, mix thoroughly by vortexing, then return the open tubes to positions A1-H1 on the deck.",
+      "labware": "lysis_tubes",
+      "duration_min": 3
+    },
+    {
+      "step": 13,
+      "instruction": "Incubate the capped tubes at 56\u00b0C in a hybridization oven with moderate rotation until tissue is completely lysed. Vortex well every 30 minutes. Check level of digestion at 2 hours; if digestion is incomplete, continue 1-2 more hours. Then return the tubes to positions A1-H1 on the deck.",
+      "labware": "lysis_tubes",
+      "duration_min": 150
+    },
+    {
+      "step": 14,
+      "instruction": "Vortex the capped tubes 15 seconds, then return the open tubes to positions A1-H1 on the deck.",
+      "labware": "lysis_tubes",
+      "duration_min": 2
+    },
+    {
+      "step": 19,
+      "instruction": "Cap the tubes and vortex thoroughly, then return the open tubes to positions A1-H1 on the deck.",
+      "labware": "lysis_tubes",
+      "duration_min": 2
+    },
+    {
+      "step": 24,
+      "instruction": "Cap the tubes and vortex again, then return the open tubes to positions A1-H1 on the deck.",
+      "labware": "lysis_tubes",
+      "duration_min": 2
+    },
+    {
+      "step": 25,
+      "instruction": "Place 8 DNeasy Mini spin columns, each in a 2 ml collection tube, in positions A1-H1 of the spin column rack on the deck, lids open.",
+      "labware": "spin_columns",
+      "duration_min": 3
+    },
+    {
+      "step": 30,
+      "instruction": "Close the spin columns, centrifuge at \u22656000 x g for 1 minute. Discard flow-through and collection tube.",
+      "labware": "spin_columns",
+      "duration_min": 4,
+      "empties": [
+        "spin_columns:A1:H1"
+      ]
+    },
+    {
+      "step": 31,
+      "instruction": "Place each DNeasy Mini spin column in a new 2 ml collection tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.",
+      "labware": "spin_columns",
+      "duration_min": 2
+    },
+    {
+      "step": 36,
+      "instruction": "Close the spin columns, centrifuge for 1 minute at \u22656000 x g. Discard flow-through and collection tube.",
+      "labware": "spin_columns",
+      "duration_min": 4,
+      "empties": [
+        "spin_columns:A1:H1"
+      ]
+    },
+    {
+      "step": 37,
+      "instruction": "Place each DNeasy column in a new 2 ml collection tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.",
+      "labware": "spin_columns",
+      "duration_min": 2
+    },
+    {
+      "step": 42,
+      "instruction": "Close the spin columns, centrifuge for 3 minutes at 20,000 x g to dry the DNeasy membrane. Discard flow-through and collection tube.",
+      "labware": "spin_columns",
+      "duration_min": 6,
+      "empties": [
+        "spin_columns:A1:H1"
+      ]
+    },
+    {
+      "step": 43,
+      "instruction": "Place each DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.",
+      "labware": "spin_columns",
+      "duration_min": 2
+    },
+    {
+      "step": 48,
+      "instruction": "Incubate at room temperature for 5 minutes.",
+      "labware": "spin_columns",
+      "duration_min": 5
+    },
+    {
+      "step": 49,
+      "instruction": "Close the spin columns and centrifuge for 1 minute at \u22656000 x g to elute DNA. Keep the 1.5 ml tubes with the eluted DNA and discard the spin columns.",
+      "labware": "spin_columns",
+      "duration_min": 4,
+      "empties": [
+        "spin_columns:A1:H1"
+      ]
+    }
+  ],
+  "fidelity": {
+    "checked": true,
+    "requirements": [
+      {
+        "id": "R1",
+        "section": "1.1",
+        "kind": "step",
+        "requirement": "R1 (1.1) place tissue in microcentrifuge tube (1.5 ml)",
+        "quote": "Place tissue in a 1.5 ml microcentrifuge tube.",
+        "steps": [
+          1
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R2",
+        "section": "1.1.1",
+        "kind": "step",
+        "requirement": "R2 (1.1.1) tissue amount: spleen or pancreas (12-15 mg, 25 mg)",
+        "quote": "Use 12-15 mg spleen or 25 mg pancreas.",
+        "steps": [
+          1
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R3",
+        "section": "1.1.2",
+        "kind": "step",
+        "requirement": "R3 (1.1.2) mince tissue with sterile scissors or scalpel",
+        "quote": "Mince further with sterile scissors or scalpel to aid digestion.",
+        "steps": [
+          1
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R4",
+        "section": "1.2",
+        "kind": "addition",
+        "requirement": "R4 (1.2) add 180 uL of Buffer ATL to each sample",
+        "quote": "Add 180 \u00b5l Buffer ATL.",
+        "steps": [
+          4
+        ],
+        "how": "on the robot",
+        "per_sample_ul": [
+          180.0
+        ],
+        "samples": 8,
+        "from": [
+          "buffer_atl (Buffer ATL (DNeasy Blood & Tissue Kit))"
+        ]
+      },
+      {
+        "id": "R5",
+        "section": "1.3",
+        "kind": "addition",
+        "requirement": "R5 (1.3) add 20 uL of proteinase K to each sample",
+        "quote": "Add 20 \u00b5l proteinase K and mix thoroughly by vortexing.",
+        "steps": [
+          10
+        ],
+        "how": "on the robot",
+        "per_sample_ul": [
+          20.0
+        ],
+        "samples": 8,
+        "from": [
+          "proteinase_k (Proteinase K (DNeasy Blood & Tissue Kit))"
+        ]
+      },
+      {
+        "id": "R6",
+        "section": "1.3",
+        "kind": "step",
+        "requirement": "R6 (1.3) mix thoroughly by vortexing",
+        "quote": "Add 20 \u00b5l proteinase K and mix thoroughly by vortexing.",
+        "steps": [
+          12
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R7",
+        "section": "1.4",
+        "kind": "step",
+        "requirement": "R7 (1.4) incubate in hybridization oven with moderate rotation until tissue completely lysed (56 C)",
+        "quote": "Incubate at 56\u00b0C in a hybridization oven with moderate rotation until tissue is completely lysed.",
+        "steps": [
+          13
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R8",
+        "section": "1.4.1",
+        "kind": "step",
+        "requirement": "R8 (1.4.1) vortex well periodically during incubation (30 min)",
+        "quote": "Vortex well every 30 minutes.",
+        "steps": [
+          13
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R9",
+        "section": "1.4.2",
+        "kind": "step",
+        "requirement": "R9 (1.4.2) check level of digestion (2 h)",
+        "quote": "Check level of digestion at 2 hours.",
+        "steps": [
+          13
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R10",
+        "section": "1.4.2",
+        "kind": "step",
+        "requirement": "R10 (1.4.2) if digestion incomplete, continue incubation (1-2 h)",
+        "quote": "If digestion is incomplete, continue 1-2 more hours.",
+        "steps": [
+          13
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R11",
+        "section": "1.5",
+        "kind": "step",
+        "requirement": "R11 (1.5) vortex (15 s)",
+        "quote": "Vortex 15 seconds, then add 200 \u00b5l Buffer AL and vortex thoroughly.",
+        "steps": [
+          14
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R12",
+        "section": "1.5",
+        "kind": "addition",
+        "requirement": "R12 (1.5) add 200 uL of Buffer AL to each sample",
+        "quote": "Vortex 15 seconds, then add 200 \u00b5l Buffer AL and vortex thoroughly.",
+        "steps": [
+          17
+        ],
+        "how": "on the robot",
+        "per_sample_ul": [
+          200.0
+        ],
+        "samples": 8,
+        "from": [
+          "buffer_al (Buffer AL (DNeasy Blood & Tissue Kit))"
+        ]
+      },
+      {
+        "id": "R13",
+        "section": "1.5",
+        "kind": "step",
+        "requirement": "R13 (1.5) vortex thoroughly",
+        "quote": "Vortex 15 seconds, then add 200 \u00b5l Buffer AL and vortex thoroughly.",
+        "steps": [
+          19
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R14",
+        "section": "1.6",
+        "kind": "addition",
+        "requirement": "R14 (1.6) add 200 uL of 100% ethanol to each sample",
+        "quote": "Add 200 \u00b5l 100% ethanol and vortex again.",
+        "steps": [
+          22
+        ],
+        "how": "on the robot",
+        "per_sample_ul": [
+          200.0
+        ],
+        "samples": 8,
+        "from": [
+          "ethanol (100% ethanol (molecular biology grade))"
+        ]
+      },
+      {
+        "id": "R15",
+        "section": "1.6",
+        "kind": "step",
+        "requirement": "R15 (1.6) vortex again",
+        "quote": "Add 200 \u00b5l 100% ethanol and vortex again.",
+        "steps": [
+          24
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R16",
+        "section": "1.7",
+        "kind": "step",
+        "requirement": "R16 (1.7) DNeasy Mini spin column placed in collection tube (2 ml)",
+        "quote": "Pipette the mixture into a DNeasy Mini spin column placed in a 2 ml collection tube.",
+        "steps": [
+          25
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R17",
+        "section": "1.7",
+        "kind": "addition",
+        "requirement": "R17 (1.7) add all of the mixture (into DNeasy Mini spin column) to each sample",
+        "quote": "Pipette the mixture into a DNeasy Mini spin column placed in a 2 ml collection tube.",
+        "steps": [
+          28
+        ],
+        "how": "on the robot",
+        "samples": 8,
+        "from": [
+          "lysis_tubes (lysis_tubes)"
+        ]
+      },
+      {
+        "id": "R18",
+        "section": "1.8",
+        "kind": "step",
+        "requirement": "R18 (1.8) centrifuge (>=6000 x g, 1 min)",
+        "quote": "Centrifuge at \u22656000 x g for 1 minute.",
+        "steps": [
+          30
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R19",
+        "section": "1.8",
+        "kind": "step",
+        "requirement": "R19 (1.8) discard flow-through and collection tube",
+        "quote": "Discard flow-through and collection tube.",
+        "steps": [
+          30
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R20",
+        "section": "1.9",
+        "kind": "step",
+        "requirement": "R20 (1.9) place spin column in new collection tube (2 ml)",
+        "quote": "Place the DNeasy Mini spin column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW1 to column.",
+        "steps": [
+          31
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R21",
+        "section": "1.9",
+        "kind": "addition",
+        "requirement": "R21 (1.9) add 500 uL of Buffer AW1 to each sample",
+        "quote": "Place the DNeasy Mini spin column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW1 to column.",
+        "steps": [
+          34
+        ],
+        "how": "on the robot",
+        "per_sample_ul": [
+          500.0
+        ],
+        "samples": 8,
+        "from": [
+          "buffer_aw1 (Buffer AW1 (DNeasy Blood & Tissue Kit, ethanol added))"
+        ]
+      },
+      {
+        "id": "R22",
+        "section": "1.10",
+        "kind": "step",
+        "requirement": "R22 (1.10) centrifuge (1 min, >=6000 x g)",
+        "quote": "Centrifuge for 1 minute at \u22656000 x g.",
+        "steps": [
+          36
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R23",
+        "section": "1.10",
+        "kind": "step",
+        "requirement": "R23 (1.10) discard flow-through and collection tube",
+        "quote": "Discard flow-through and collection tube.",
+        "steps": [
+          36
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R24",
+        "section": "1.11",
+        "kind": "step",
+        "requirement": "R24 (1.11) place column in new collection tube (2 ml)",
+        "quote": "Place the DNeasy column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW2.",
+        "steps": [
+          37
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R25",
+        "section": "1.11",
+        "kind": "addition",
+        "requirement": "R25 (1.11) add 500 uL of Buffer AW2 to each sample",
+        "quote": "Place the DNeasy column in a new 2 ml collection tube and add 500 \u00b5l Buffer AW2.",
+        "steps": [
+          40
+        ],
+        "how": "on the robot",
+        "per_sample_ul": [
+          500.0
+        ],
+        "samples": 8,
+        "from": [
+          "buffer_aw2 (Buffer AW2 (DNeasy Blood & Tissue Kit, ethanol added))"
+        ]
+      },
+      {
+        "id": "R26",
+        "section": "1.12",
+        "kind": "step",
+        "requirement": "R26 (1.12) centrifuge to dry DNeasy membrane (3 min, 20000 x g)",
+        "quote": "Centrifuge for 3 minutes at 20,000 x g to dry the DNeasy membrane.",
+        "steps": [
+          42
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R27",
+        "section": "1.12",
+        "kind": "step",
+        "requirement": "R27 (1.12) discard flow-through and collection tube",
+        "quote": "Discard flow-through and collection tube.",
+        "steps": [
+          42
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R28",
+        "section": "1.13",
+        "kind": "step",
+        "requirement": "R28 (1.13) place spin column in new microcentrifuge tube (1.5 ml)",
+        "quote": "Place DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and add 100 \u00b5l 1x Tris-EDTA buffer to the center of the spin column membrane.",
+        "steps": [
+          43
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R29",
+        "section": "1.13",
+        "kind": "addition",
+        "requirement": "R29 (1.13) add 100 uL of 1x Tris-EDTA buffer (to the center of the spin column membrane) to each sample",
+        "quote": "Place DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and add 100 \u00b5l 1x Tris-EDTA buffer to the center of the spin column membrane.",
+        "steps": [
+          46
+        ],
+        "how": "on the robot",
+        "per_sample_ul": [
+          100.0
+        ],
+        "samples": 8,
+        "from": [
+          "te_buffer (1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA))"
+        ]
+      },
+      {
+        "id": "R30",
+        "section": "1.14",
+        "kind": "step",
+        "requirement": "R30 (1.14) incubate at room temperature (5 min)",
+        "quote": "Incubate at room temperature for 5 minutes and then centrifuge for 1 minute at \u22656000 x g to elute DNA.",
+        "steps": [
+          48
+        ],
+        "how": "by hand"
+      },
+      {
+        "id": "R31",
+        "section": "1.14",
+        "kind": "step",
+        "requirement": "R31 (1.14) centrifuge to elute DNA (1 min, >=6000 x g)",
+        "quote": "Incubate at room temperature for 5 minutes and then centrifuge for 1 minute at \u22656000 x g to elute DNA.",
+        "steps": [
+          49
+        ],
+        "how": "by hand"
+      }
+    ],
+    "samples": 8,
+    "scope": {
+      "covered": "Section 1.0 DNA Extraction from Tissue (fresh or snap frozen tissue), steps 1.1 through 1.14",
+      "left_out": [
+        "Section 2.0 DNA Extraction from OCT Blocks (alternative sample preparation that joins at step 1.2)",
+        "Section 3.0 DNA Extraction from Formalin-fixed Paraffin-embedded Tissue Sections (alternative xylene/ethanol deparaffinization and overnight digestion, which joins at step 1.5)",
+        "Section 4.0 Quantification and Quality Analysis (step 1.15 points to it; spectrophotometer measurement, data analysis, concentration adjustment, aliquoting and -80\u00b0C storage)",
+        "Safety policy, equipment list and references sections"
+      ],
+      "quotes_checked": true
+    },
+    "outside_run": []
+  },
+  "needs_review": [
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "tips_50: add carrier: hamilton_96_tiprack_50uL_filter at TIP_CAR_480_1 (rail 1) position 1"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "tips_300: add carrier: hamilton_96_tiprack_300uL_filter at TIP_CAR_480_1 (rail 1) position 2"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "tips_1000: add carrier: hamilton_96_tiprack_1000uL_filter at TIP_CAR_480_1 (rail 1) position 3"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "buffer_atl: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 1"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "proteinase_k: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 2"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "buffer_al: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 3"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "ethanol: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 4"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "buffer_aw1: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_8 (rail 8) position 1"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "buffer_aw2: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_8 (rail 8) position 2"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "te_buffer: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_8 (rail 8) position 3"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "lysis_tubes: add carrier: Cor_96_wellplate_2mL_Vb at PLT_CAR_L5MD_9 (rail 9) position 1"
+    },
+    {
+      "severity": "must",
+      "area": "deck",
+      "item": "Place on the deck before the run",
+      "detail": "spin_columns: add carrier: eppendorf_96_wellplate_1000ul_Vb at PLT_CAR_L5MD_9 (rail 9) position 2"
+    },
+    {
+      "severity": "check",
+      "area": "fidelity",
+      "item": "Held to 31 requirements read from the SOP (Section 1.0 DNA Extraction from Tissue (fresh or snap frozen tissue), steps 1.1 through 1.14)",
+      "detail": "Every volume and number below is the SOP's. Confirm none is missing. Left out: Section 2.0 DNA Extraction from OCT Blocks (alternative sample preparation that joins at step 1.2); Section 3.0 DNA Extraction from Formalin-fixed Paraffin-embedded Tissue Sections (alternative xylene/ethanol deparaffinization and overnight digestion, which joins at step 1.5); Section 4.0 Quantification and Quality Analysis (step 1.15 points to it; spectrophotometer measurement, data analysis, concentration adjustment, aliquoting and -80\u00b0C storage); Safety policy, equipment list and references sections."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 1 is done by hand (about 20 min)",
+      "detail": "Place tissue in a 1.5 ml microcentrifuge tube for each of the 8 samples. Use 12-15 mg spleen or 25 mg pancreas. Mince further with sterile scissors or scalpel to aid digestion. Put the open tubes in positions A1-H1 of the lysis tube rack on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 12 is done by hand (about 3 min)",
+      "detail": "Cap the tubes, mix thoroughly by vortexing, then return the open tubes to positions A1-H1 on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 13 is done by hand (about 150 min)",
+      "detail": "Incubate the capped tubes at 56\u00b0C in a hybridization oven with moderate rotation until tissue is completely lysed. Vortex well every 30 minutes. Check level of digestion at 2 hours; if digestion is incomplete, continue 1-2 more hours. Then return the tubes to positions A1-H1 on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 14 is done by hand (about 2 min)",
+      "detail": "Vortex the capped tubes 15 seconds, then return the open tubes to positions A1-H1 on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 19 is done by hand (about 2 min)",
+      "detail": "Cap the tubes and vortex thoroughly, then return the open tubes to positions A1-H1 on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 24 is done by hand (about 2 min)",
+      "detail": "Cap the tubes and vortex again, then return the open tubes to positions A1-H1 on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 25 is done by hand (about 3 min)",
+      "detail": "Place 8 DNeasy Mini spin columns, each in a 2 ml collection tube, in positions A1-H1 of the spin column rack on the deck, lids open.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 30 is done by hand (about 4 min)",
+      "detail": "Close the spin columns, centrifuge at \u22656000 x g for 1 minute. Discard flow-through and collection tube.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 31 is done by hand (about 2 min)",
+      "detail": "Place each DNeasy Mini spin column in a new 2 ml collection tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 36 is done by hand (about 4 min)",
+      "detail": "Close the spin columns, centrifuge for 1 minute at \u22656000 x g. Discard flow-through and collection tube.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 37 is done by hand (about 2 min)",
+      "detail": "Place each DNeasy column in a new 2 ml collection tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 42 is done by hand (about 6 min)",
+      "detail": "Close the spin columns, centrifuge for 3 minutes at 20,000 x g to dry the DNeasy membrane. Discard flow-through and collection tube.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 43 is done by hand (about 2 min)",
+      "detail": "Place each DNeasy Mini spin column in a new 1.5 ml microcentrifuge tube and return them, lids open, to positions A1-H1 of the spin column rack on the deck.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 48 is done by hand (about 5 min)",
+      "detail": "Incubate at room temperature for 5 minutes.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "manual",
+      "item": "Step 49 is done by hand (about 4 min)",
+      "detail": "Close the spin columns and centrifuge for 1 minute at \u22656000 x g to elute DNA. Keep the 1.5 ml tubes with the eluted DNA and discard the spin columns.. The robot waits for the operator (AHC asks them with request_manual_step)."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "8 samples are processed, one per row (A-H) of column 1."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "The 1.5 ml microcentrifuge tubes with the tissue sit in positions A1-H1 of a 96-position rack, represented as the plate 'lysis_tubes' (1500 uL per position)."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "DNeasy Mini spin columns in 2 ml collection tubes sit in positions A1-H1 of a 96-position rack, represented as the plate 'spin_columns' (about 700 uL per column)."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "The whole mixture is taken as 600 uL (180 ATL + 20 proteinase K + 200 AL + 200 ethanol), moved in one 1000 uL tip aspiration. The operator moves any leftover liquid by hand when the rack comes off the deck."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "Proteinase K is loaded into a small trough so that all 8 channels can draw at once. 1000 uL is loaded to cover the trough's dead volume."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "Filter tips are used throughout, as the SOP lists filter pipette tips."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "Fresh tips are used for every addition. Tips are dropped before every manual step."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "The labware is taken off the deck for each vortex, incubation and centrifuge step and put back in the same position."
+    },
+    {
+      "severity": "check",
+      "area": "drafting",
+      "item": "Assumption made when drafting",
+      "detail": "The incubation duration_min is an estimate (2 h, plus up to 2 more if digestion is incomplete)."
+    },
+    {
+      "severity": "check",
+      "area": "repair",
+      "item": "Repair in round 0 (claude-haiku-5-5)",
+      "detail": "1 edit(s) to the steps after: Step 7: UNRECOGNIZED (ValueError: no liquid class is known for channel 0's tip on proteinase_k: 60 uL, with filter, water, jet=False, blow_out=False. Give hamilton_liquid_classes, blow_out=True, which has one, or piston_volumes)"
+    },
+    {
+      "severity": "must",
+      "area": "liquid",
+      "item": "'te_buffer' starts 3.7 mm deep and ends 1.8 mm deep",
+      "detail": "1200 uL spreads thin in this container. Below about 2 mm a tip draws air or misses the liquid; the simulator checks volume, not depth. Load more, or use a narrower container (a tube) for a small volume."
+    }
+  ],
+  "deck_view": {
+    "target": "plr",
+    "num_rails": 32,
+    "carriers": [
+      {
+        "name": "TIP_CAR_480_1",
+        "type": "TIP_CAR_480",
+        "rails": 1,
+        "width": 6,
+        "sites": 5,
+        "added": true,
+        "issues": [],
+        "status": "used",
+        "labware": [
+          {
+            "id": "tips_50",
+            "slot": 4,
+            "position": 1,
+            "type": "hamilton_96_tiprack_50uL_filter",
+            "kind": "tip_rack",
+            "used": true,
+            "added": true,
+            "role": "tips",
+            "holds": null,
+            "loaded_ul": null,
+            "assumptions": [],
+            "issues": [],
+            "status": "used",
+            "image": {
+              "name": "Low-volume CO-RE tips",
+              "product_page": "https://www.hamiltoncompany.com/consumables/50-\u03bcl-clear-filter-tips",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/Disposable%20Pipette%20Tips%20in%20Laboratory%20Tip%20Boxes.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:Disposable%20Pipette%20Tips%20in%20Laboratory%20Tip%20Boxes.jpg",
+              "caption": "Racks of 96 disposable tips",
+              "license": "CC BY-SA 4.0",
+              "credit": "Wikimedia Commons"
+            }
+          },
+          {
+            "id": "tips_300",
+            "slot": 3,
+            "position": 2,
+            "type": "hamilton_96_tiprack_300uL_filter",
+            "kind": "tip_rack",
+            "used": true,
+            "added": true,
+            "role": "tips",
+            "holds": null,
+            "loaded_ul": null,
+            "assumptions": [],
+            "issues": [],
+            "status": "used",
+            "image": {
+              "name": "300 uL CO-RE filter tips",
+              "product_page": "https://www.hamiltoncompany.com/disposable-tips/300-\u03bcl-conductive-non-sterile-filter-tips",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/Disposable%20Pipette%20Tips%20in%20Laboratory%20Tip%20Boxes.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:Disposable%20Pipette%20Tips%20in%20Laboratory%20Tip%20Boxes.jpg",
+              "caption": "Racks of 96 disposable tips",
+              "license": "CC BY-SA 4.0",
+              "credit": "Wikimedia Commons"
+            }
+          },
+          {
+            "id": "tips_1000",
+            "slot": 2,
+            "position": 3,
+            "type": "hamilton_96_tiprack_1000uL_filter",
+            "kind": "tip_rack",
+            "used": true,
+            "added": true,
+            "role": "tips",
+            "holds": null,
+            "loaded_ul": null,
+            "assumptions": [],
+            "issues": [],
+            "status": "used",
+            "image": {
+              "name": "1000 uL CO-RE filter tips",
+              "product_page": "https://www.hamiltoncompany.com/consumables/1000-%C2%B5l-co-re-ii-conductive-tips",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/Disposable%20Pipette%20Tips%20in%20Laboratory%20Tip%20Boxes.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:Disposable%20Pipette%20Tips%20in%20Laboratory%20Tip%20Boxes.jpg",
+              "caption": "Racks of 96 disposable tips",
+              "license": "CC BY-SA 4.0",
+              "credit": "Wikimedia Commons"
+            }
+          }
+        ],
+        "image": {
+          "name": "Framed tip rack landscape carrier (5 racks, 6 tracks)",
+          "product_page": "https://www.hamiltoncompany.com/automated-liquid-handling/other-robotics/182085",
+          "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+          "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+          "caption": "Carriers on a Hamilton Microlab STAR deck",
+          "license": "CC0",
+          "credit": "Wikimedia Commons"
+        }
+      },
+      {
+        "name": "Trough_CAR_5R60_A00_7",
+        "type": "Trough_CAR_5R60_A00",
+        "rails": 7,
+        "width": 1,
+        "sites": 4,
+        "added": true,
+        "issues": [],
+        "status": "assumption",
+        "labware": [
+          {
+            "id": "buffer_atl",
+            "slot": 3,
+            "position": 1,
+            "type": "hamilton_1_trough_60mL_Vb",
+            "kind": "container",
+            "used": true,
+            "added": true,
+            "role": "source",
+            "holds": "Buffer ATL (DNeasy Blood & Tissue Kit)",
+            "loaded_ul": 2000,
+            "assumptions": [
+              "The whole mixture is taken as 600 uL (180 ATL + 20 proteinase K + 200 AL + 200 ethanol), moved in one 1000 uL tip aspiration. The operator moves any leftover liquid by hand when the rack comes off the deck."
+            ],
+            "issues": [],
+            "status": "assumption",
+            "image": {
+              "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+              "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+              "caption": "Carriers on a Hamilton Microlab STAR deck",
+              "license": "CC0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 60000
+          },
+          {
+            "id": "proteinase_k",
+            "slot": 2,
+            "position": 2,
+            "type": "hamilton_1_trough_60mL_Vb",
+            "kind": "container",
+            "used": true,
+            "added": true,
+            "role": "source",
+            "holds": "Proteinase K (DNeasy Blood & Tissue Kit)",
+            "loaded_ul": 1000,
+            "assumptions": [
+              "The whole mixture is taken as 600 uL (180 ATL + 20 proteinase K + 200 AL + 200 ethanol), moved in one 1000 uL tip aspiration. The operator moves any leftover liquid by hand when the rack comes off the deck.",
+              "Proteinase K is loaded into a small trough so that all 8 channels can draw at once. 1000 uL is loaded to cover the trough's dead volume."
+            ],
+            "issues": [],
+            "status": "assumption",
+            "image": {
+              "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+              "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+              "caption": "Carriers on a Hamilton Microlab STAR deck",
+              "license": "CC0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 60000
+          },
+          {
+            "id": "buffer_al",
+            "slot": 1,
+            "position": 3,
+            "type": "hamilton_1_trough_60mL_Vb",
+            "kind": "container",
+            "used": true,
+            "added": true,
+            "role": "source",
+            "holds": "Buffer AL (DNeasy Blood & Tissue Kit)",
+            "loaded_ul": 2500,
+            "assumptions": [
+              "The whole mixture is taken as 600 uL (180 ATL + 20 proteinase K + 200 AL + 200 ethanol), moved in one 1000 uL tip aspiration. The operator moves any leftover liquid by hand when the rack comes off the deck.",
+              "Proteinase K is loaded into a small trough so that all 8 channels can draw at once. 1000 uL is loaded to cover the trough's dead volume."
+            ],
+            "issues": [],
+            "status": "assumption",
+            "image": {
+              "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+              "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+              "caption": "Carriers on a Hamilton Microlab STAR deck",
+              "license": "CC0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 60000
+          },
+          {
+            "id": "ethanol",
+            "slot": 0,
+            "position": 4,
+            "type": "hamilton_1_trough_60mL_Vb",
+            "kind": "container",
+            "used": true,
+            "added": true,
+            "role": "source",
+            "holds": "100% ethanol (molecular biology grade)",
+            "loaded_ul": 2500,
+            "assumptions": [
+              "The whole mixture is taken as 600 uL (180 ATL + 20 proteinase K + 200 AL + 200 ethanol), moved in one 1000 uL tip aspiration. The operator moves any leftover liquid by hand when the rack comes off the deck."
+            ],
+            "issues": [],
+            "status": "assumption",
+            "image": {
+              "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+              "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+              "caption": "Carriers on a Hamilton Microlab STAR deck",
+              "license": "CC0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 60000
+          }
+        ],
+        "image": {
+          "name": "Reagent trough carrier",
+          "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+          "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+          "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+          "caption": "Carriers on a Hamilton Microlab STAR deck",
+          "license": "CC0",
+          "credit": "Wikimedia Commons"
+        }
+      },
+      {
+        "name": "Trough_CAR_5R60_A00_8",
+        "type": "Trough_CAR_5R60_A00",
+        "rails": 8,
+        "width": 1,
+        "sites": 4,
+        "added": true,
+        "issues": [],
+        "status": "issue",
+        "labware": [
+          {
+            "id": "buffer_aw1",
+            "slot": 3,
+            "position": 1,
+            "type": "hamilton_1_trough_60mL_Vb",
+            "kind": "container",
+            "used": true,
+            "added": true,
+            "role": "source",
+            "holds": "Buffer AW1 (DNeasy Blood & Tissue Kit, ethanol added)",
+            "loaded_ul": 5000,
+            "assumptions": [],
+            "issues": [],
+            "status": "used",
+            "image": {
+              "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+              "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+              "caption": "Carriers on a Hamilton Microlab STAR deck",
+              "license": "CC0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 60000
+          },
+          {
+            "id": "buffer_aw2",
+            "slot": 2,
+            "position": 2,
+            "type": "hamilton_1_trough_60mL_Vb",
+            "kind": "container",
+            "used": true,
+            "added": true,
+            "role": "source",
+            "holds": "Buffer AW2 (DNeasy Blood & Tissue Kit, ethanol added)",
+            "loaded_ul": 5000,
+            "assumptions": [],
+            "issues": [],
+            "status": "used",
+            "image": {
+              "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+              "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+              "caption": "Carriers on a Hamilton Microlab STAR deck",
+              "license": "CC0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 60000
+          },
+          {
+            "id": "te_buffer",
+            "slot": 1,
+            "position": 3,
+            "type": "hamilton_1_trough_60mL_Vb",
+            "kind": "container",
+            "used": true,
+            "added": true,
+            "role": "source",
+            "holds": "1x Tris-EDTA, DNase/RNase-free (pH 8.0, 10 mM Tris-HCl, 1 mM EDTA)",
+            "loaded_ul": 1200,
+            "assumptions": [],
+            "issues": [
+              "'te_buffer' starts 3.7 mm deep and ends 1.8 mm deep: 1200 uL spreads thin in this container. Below about 2 mm a tip draws air or misses the liquid; the simulator checks volume, not depth. Load more, or use a narrower container (a tube) for a small volume."
+            ],
+            "status": "issue",
+            "image": {
+              "name": "Hamilton 60 mL reagent trough (seen on the deck)",
+              "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+              "caption": "Carriers on a Hamilton Microlab STAR deck",
+              "license": "CC0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 60000
+          }
+        ],
+        "image": {
+          "name": "Reagent trough carrier",
+          "product_page": "https://www.hamiltoncompany.com/product-specs/56694-01",
+          "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+          "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+          "caption": "Carriers on a Hamilton Microlab STAR deck",
+          "license": "CC0",
+          "credit": "Wikimedia Commons"
+        }
+      },
+      {
+        "name": "PLT_CAR_L5MD_9",
+        "type": "PLT_CAR_L5MD",
+        "rails": 9,
+        "width": 6,
+        "sites": 5,
+        "added": true,
+        "issues": [],
+        "status": "assumption",
+        "labware": [
+          {
+            "id": "lysis_tubes",
+            "slot": 4,
+            "position": 1,
+            "type": "Cor_96_wellplate_2mL_Vb",
+            "kind": "plate",
+            "used": true,
+            "added": true,
+            "role": "intermediate",
+            "holds": null,
+            "loaded_ul": null,
+            "assumptions": [
+              "The 1.5 ml microcentrifuge tubes with the tissue sit in positions A1-H1 of a 96-position rack, represented as the plate 'lysis_tubes' (1500 uL per position)."
+            ],
+            "issues": [],
+            "status": "assumption",
+            "image": {
+              "name": "96 deep-well plate",
+              "product_page": "https://www.hamiltoncompany.com/consumables/deep-well-plates?part-number=235656",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/96-well%20microplate.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:96-well%20microplate.jpg",
+              "caption": "A 96-well (deep-well) plate",
+              "license": "CC BY-SA 4.0",
+              "credit": "Wikimedia Commons"
+            },
+            "capacity_ul": 2393.0
+          },
+          {
+            "id": "spin_columns",
+            "slot": 3,
+            "position": 2,
+            "type": "eppendorf_96_wellplate_1000ul_Vb",
+            "kind": "plate",
+            "used": true,
+            "added": true,
+            "role": "output",
+            "holds": null,
+            "loaded_ul": null,
+            "assumptions": [
+              "DNeasy Mini spin columns in 2 ml collection tubes sit in positions A1-H1 of a 96-position rack, represented as the plate 'spin_columns' (about 700 uL per column)."
+            ],
+            "issues": [],
+            "status": "assumption",
+            "image": {
+              "name": "96 deep-well plate",
+              "product_page": "https://www.hamiltoncompany.com/consumables/deep-well-plates?part-number=235656",
+              "src": "https://commons.wikimedia.org/wiki/Special:FilePath/96-well%20microplate.jpg?width=480",
+              "page": "https://commons.wikimedia.org/wiki/File:96-well%20microplate.jpg",
+              "caption": "A 96-well (deep-well) plate",
+              "license": "CC BY-SA 4.0",
+              "credit": "Wikimedia Commons"
+            },
+            "final": {
+              "wells": 8,
+              "total_ul": 800.0,
+              "leaves_deck": "Close the spin columns and centrifuge for 1 minute at \u22656000 x g to elute DNA. Keep the 1.5 ml tubes with the eluted DNA and discard the spin columns."
+            },
+            "capacity_ul": 1581.7
+          }
+        ],
+        "image": {
+          "name": "Microplate landscape carrier (5 plates, 6 tracks)",
+          "product_page": "https://www.hamiltoncompany.com/automated-liquid-handling/other-robotics/182365",
+          "src": "https://commons.wikimedia.org/wiki/Special:FilePath/HamMlStarLqHnd.jpg?width=480",
+          "page": "https://commons.wikimedia.org/wiki/File:HamMlStarLqHnd.jpg",
+          "caption": "Carriers on a Hamilton Microlab STAR deck",
+          "license": "CC0",
+          "credit": "Wikimedia Commons"
+        }
+      }
+    ],
+    "waste": "waste",
+    "general_assumptions": [
+      "8 samples are processed, one per row (A-H) of column 1.",
+      "Filter tips are used throughout, as the SOP lists filter pipette tips.",
+      "Fresh tips are used for every addition. Tips are dropped before every manual step.",
+      "The labware is taken off the deck for each vortex, incubation and centrifuge step and put back in the same position.",
+      "The incubation duration_min is an estimate (2 h, plus up to 2 more if digestion is incomplete)."
+    ],
+    "unplaced_issues": []
+  }
+}

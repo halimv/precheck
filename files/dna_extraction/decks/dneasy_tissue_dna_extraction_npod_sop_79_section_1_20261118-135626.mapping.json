@@ -1,0 +1,381 @@
+{
+  "deck_config": "decks/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626.json",
+  "labware": {
+    "tips_50": {
+      "need": {
+        "kind": "tip_rack",
+        "tip_volume_ul": 50,
+        "filter": true,
+        "description": "50 uL filter tips for the 20 uL proteinase K addition"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_96_tiprack_50uL_filter",
+      "venus_file": null,
+      "description": "PyLabRobot Hamilton tip rack",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": null,
+      "tip_volume_ul": 50.0,
+      "carrier": {
+        "name": "TIP_CAR_480_1",
+        "venus_type": "TIP_CAR_480",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 1,
+        "added": true
+      },
+      "position": {
+        "hamilton": 1,
+        "plr_site": 4
+      }
+    },
+    "tips_300": {
+      "need": {
+        "kind": "tip_rack",
+        "tip_volume_ul": 300,
+        "filter": true,
+        "description": "300 uL filter tips for Buffer ATL, Buffer AL, ethanol and TE additions"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_96_tiprack_300uL_filter",
+      "venus_file": null,
+      "description": "PyLabRobot Hamilton tip rack",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": null,
+      "tip_volume_ul": 300.0,
+      "carrier": {
+        "name": "TIP_CAR_480_1",
+        "venus_type": "TIP_CAR_480",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 1,
+        "added": true
+      },
+      "position": {
+        "hamilton": 2,
+        "plr_site": 3
+      }
+    },
+    "tips_1000": {
+      "need": {
+        "kind": "tip_rack",
+        "tip_volume_ul": 1000,
+        "filter": true,
+        "description": "1000 uL filter tips for the lysate transfer and the AW1/AW2 washes"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_96_tiprack_1000uL_filter",
+      "venus_file": null,
+      "description": "PyLabRobot Hamilton tip rack",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": null,
+      "tip_volume_ul": 1000.0,
+      "carrier": {
+        "name": "TIP_CAR_480_1",
+        "venus_type": "TIP_CAR_480",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 1,
+        "added": true
+      },
+      "position": {
+        "hamilton": 3,
+        "plr_site": 2
+      }
+    },
+    "buffer_atl": {
+      "need": {
+        "kind": "reservoir",
+        "min_capacity_ul": 3000,
+        "description": "Buffer ATL trough"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_1_trough_60mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot trough",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 60000,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "Trough_CAR_5R60_A00_7",
+        "venus_type": "Trough_CAR_5R60_A00",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 7,
+        "added": true
+      },
+      "position": {
+        "hamilton": 1,
+        "plr_site": 3
+      }
+    },
+    "proteinase_k": {
+      "need": {
+        "kind": "reservoir",
+        "min_capacity_ul": 1500,
+        "description": "Proteinase K trough"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_1_trough_60mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot trough",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 60000,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "Trough_CAR_5R60_A00_7",
+        "venus_type": "Trough_CAR_5R60_A00",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 7,
+        "added": true
+      },
+      "position": {
+        "hamilton": 2,
+        "plr_site": 2
+      }
+    },
+    "buffer_al": {
+      "need": {
+        "kind": "reservoir",
+        "min_capacity_ul": 4000,
+        "description": "Buffer AL trough"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_1_trough_60mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot trough",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 60000,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "Trough_CAR_5R60_A00_7",
+        "venus_type": "Trough_CAR_5R60_A00",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 7,
+        "added": true
+      },
+      "position": {
+        "hamilton": 3,
+        "plr_site": 1
+      }
+    },
+    "ethanol": {
+      "need": {
+        "kind": "reservoir",
+        "min_capacity_ul": 4000,
+        "description": "100% ethanol trough"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_1_trough_60mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot trough",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 60000,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "Trough_CAR_5R60_A00_7",
+        "venus_type": "Trough_CAR_5R60_A00",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 7,
+        "added": true
+      },
+      "position": {
+        "hamilton": 4,
+        "plr_site": 0
+      }
+    },
+    "buffer_aw1": {
+      "need": {
+        "kind": "reservoir",
+        "min_capacity_ul": 7000,
+        "description": "Buffer AW1 trough"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_1_trough_60mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot trough",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 60000,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "Trough_CAR_5R60_A00_8",
+        "venus_type": "Trough_CAR_5R60_A00",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 8,
+        "added": true
+      },
+      "position": {
+        "hamilton": 1,
+        "plr_site": 3
+      }
+    },
+    "buffer_aw2": {
+      "need": {
+        "kind": "reservoir",
+        "min_capacity_ul": 7000,
+        "description": "Buffer AW2 trough"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_1_trough_60mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot trough",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 60000,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "Trough_CAR_5R60_A00_8",
+        "venus_type": "Trough_CAR_5R60_A00",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 8,
+        "added": true
+      },
+      "position": {
+        "hamilton": 2,
+        "plr_site": 2
+      }
+    },
+    "te_buffer": {
+      "need": {
+        "kind": "reservoir",
+        "min_capacity_ul": 2000,
+        "description": "1x Tris-EDTA elution buffer trough"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "hamilton_1_trough_60mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot trough",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 60000,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "Trough_CAR_5R60_A00_8",
+        "venus_type": "Trough_CAR_5R60_A00",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 8,
+        "added": true
+      },
+      "position": {
+        "hamilton": 3,
+        "plr_site": 1
+      }
+    },
+    "lysis_tubes": {
+      "need": {
+        "kind": "plate",
+        "wells": 96,
+        "min_capacity_ul": 1500,
+        "description": "Rack of 1.5 ml microcentrifuge tubes with minced tissue, column 1 (A1-H1)"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "Cor_96_wellplate_2mL_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot 96-well plate",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 2000.0,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "PLT_CAR_L5MD_9",
+        "venus_type": "PLT_CAR_L5MD",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 9,
+        "added": true
+      },
+      "position": {
+        "hamilton": 1,
+        "plr_site": 4
+      }
+    },
+    "spin_columns": {
+      "need": {
+        "kind": "plate",
+        "wells": 96,
+        "min_capacity_ul": 700,
+        "description": "Rack of DNeasy Mini spin columns in collection tubes, column 1 (A1-H1)"
+      },
+      "action": "add_carrier",
+      "on_deck_as": null,
+      "venus_type": "eppendorf_96_wellplate_1000ul_Vb",
+      "venus_file": null,
+      "description": "PyLabRobot 96-well plate",
+      "barcode": null,
+      "part_number": null,
+      "capacity_ul": 1000.0,
+      "tip_volume_ul": null,
+      "carrier": {
+        "name": "PLT_CAR_L5MD_9",
+        "venus_type": "PLT_CAR_L5MD",
+        "barcode": null,
+        "label": null,
+        "part_number": null,
+        "rails": 9,
+        "added": true
+      },
+      "position": {
+        "hamilton": 2,
+        "plr_site": 3
+      }
+    },
+    "waste": {
+      "need": {
+        "kind": "waste"
+      },
+      "action": "on_deck",
+      "venus_type": null,
+      "description": "the deck's tip waste",
+      "barcode": null
+    }
+  },
+  "operator_changes": [
+    "tips_50: add carrier: hamilton_96_tiprack_50uL_filter at TIP_CAR_480_1 (rail 1) position 1",
+    "tips_300: add carrier: hamilton_96_tiprack_300uL_filter at TIP_CAR_480_1 (rail 1) position 2",
+    "tips_1000: add carrier: hamilton_96_tiprack_1000uL_filter at TIP_CAR_480_1 (rail 1) position 3",
+    "buffer_atl: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 1",
+    "proteinase_k: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 2",
+    "buffer_al: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 3",
+    "ethanol: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_7 (rail 7) position 4",
+    "buffer_aw1: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_8 (rail 8) position 1",
+    "buffer_aw2: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_8 (rail 8) position 2",
+    "te_buffer: add carrier: hamilton_1_trough_60mL_Vb at Trough_CAR_5R60_A00_8 (rail 8) position 3",
+    "lysis_tubes: add carrier: Cor_96_wellplate_2mL_Vb at PLT_CAR_L5MD_9 (rail 9) position 1",
+    "spin_columns: add carrier: eppendorf_96_wellplate_1000ul_Vb at PLT_CAR_L5MD_9 (rail 9) position 2"
+  ]
+}

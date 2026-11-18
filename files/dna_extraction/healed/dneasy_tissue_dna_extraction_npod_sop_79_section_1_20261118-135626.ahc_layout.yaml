@@ -1,0 +1,16 @@
+# AHC layout exported by LLNL Capstone Precheck (pipeline/ahc_export.py) at 2026-11-18T13:56:42.
+# Source: healed/dneasy_tissue_dna_extraction_npod_sop_79_section_1_20261118-135626.json
+# NOT ON THIS LAYOUT (AHC would not know these are on the deck):
+#   - carrier TIP_CAR_480_1 (TIP_CAR_480, rail 1) is not a carrier AHC accepts
+#   - carrier Trough_CAR_5R60_A00_7 (Trough_CAR_5R60_A00, rail 7) is not a carrier AHC accepts
+#   - carrier Trough_CAR_5R60_A00_8 (Trough_CAR_5R60_A00, rail 8) is not a carrier AHC accepts
+#   - carrier PLT_CAR_L5MD_9 (PLT_CAR_L5MD, rail 9) is not a carrier AHC accepts
+#   - the 2000 uL loaded in buffer_atl has no place in the AHC layout
+#   - the 1000 uL loaded in proteinase_k has no place in the AHC layout
+#   - the 2500 uL loaded in buffer_al has no place in the AHC layout
+#   - the 2500 uL loaded in ethanol has no place in the AHC layout
+#   - the 5000 uL loaded in buffer_aw1 has no place in the AHC layout
+#   - the 5000 uL loaded in buffer_aw2 has no place in the AHC layout
+#   - the 1200 uL loaded in te_buffer has no place in the AHC layout
+# Load it with load_layout(name=...); the deck check confirms it before anything moves.
+carriers: []

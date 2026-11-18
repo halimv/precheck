@@ -1,0 +1,130 @@
+{
+  "description": "Deck for DNeasy tissue DNA extraction (nPOD SOP-79, section 1.0), built by pipeline/deck_builder.py on the instrument deck from PyLabRobot's labware library. Labware IDs are the protocol's IR names; labware the protocol does not use keeps its VENUS ID. Carriers marked `added` are not on the deck yet.",
+  "deck": "STARLetDeck",
+  "instrument": "config/instrument/starlet_F553.json",
+  "source": {
+    "catalog": "pylabrobot"
+  },
+  "carriers": [
+    {
+      "name": "TIP_CAR_480_1",
+      "factory": "TIP_CAR_480",
+      "rails": 1,
+      "venus_type": "TIP_CAR_480",
+      "added": true
+    },
+    {
+      "name": "Trough_CAR_5R60_A00_7",
+      "factory": "Trough_CAR_5R60_A00",
+      "rails": 7,
+      "venus_type": "Trough_CAR_5R60_A00",
+      "added": true
+    },
+    {
+      "name": "Trough_CAR_5R60_A00_8",
+      "factory": "Trough_CAR_5R60_A00",
+      "rails": 8,
+      "venus_type": "Trough_CAR_5R60_A00",
+      "added": true
+    },
+    {
+      "name": "PLT_CAR_L5MD_9",
+      "factory": "PLT_CAR_L5MD",
+      "rails": 9,
+      "venus_type": "PLT_CAR_L5MD",
+      "added": true
+    }
+  ],
+  "labware": {
+    "waste": {
+      "kind": "trash",
+      "note": "The deck's built-in trash area.",
+      "venus_id": "waste"
+    },
+    "tips_50": {
+      "factory": "hamilton_96_tiprack_50uL_filter",
+      "kind": "tip_rack",
+      "carrier": "TIP_CAR_480_1",
+      "slot": 4,
+      "venus_type": "hamilton_96_tiprack_50uL_filter"
+    },
+    "tips_300": {
+      "factory": "hamilton_96_tiprack_300uL_filter",
+      "kind": "tip_rack",
+      "carrier": "TIP_CAR_480_1",
+      "slot": 3,
+      "venus_type": "hamilton_96_tiprack_300uL_filter"
+    },
+    "tips_1000": {
+      "factory": "hamilton_96_tiprack_1000uL_filter",
+      "kind": "tip_rack",
+      "carrier": "TIP_CAR_480_1",
+      "slot": 2,
+      "venus_type": "hamilton_96_tiprack_1000uL_filter"
+    },
+    "buffer_atl": {
+      "factory": "hamilton_1_trough_60mL_Vb",
+      "kind": "container",
+      "carrier": "Trough_CAR_5R60_A00_7",
+      "slot": 3,
+      "venus_type": "hamilton_1_trough_60mL_Vb"
+    },
+    "proteinase_k": {
+      "factory": "hamilton_1_trough_60mL_Vb",
+      "kind": "container",
+      "carrier": "Trough_CAR_5R60_A00_7",
+      "slot": 2,
+      "venus_type": "hamilton_1_trough_60mL_Vb"
+    },
+    "buffer_al": {
+      "factory": "hamilton_1_trough_60mL_Vb",
+      "kind": "container",
+      "carrier": "Trough_CAR_5R60_A00_7",
+      "slot": 1,
+      "venus_type": "hamilton_1_trough_60mL_Vb"
+    },
+    "ethanol": {
+      "factory": "hamilton_1_trough_60mL_Vb",
+      "kind": "container",
+      "carrier": "Trough_CAR_5R60_A00_7",
+      "slot": 0,
+      "venus_type": "hamilton_1_trough_60mL_Vb"
+    },
+    "buffer_aw1": {
+      "factory": "hamilton_1_trough_60mL_Vb",
+      "kind": "container",
+      "carrier": "Trough_CAR_5R60_A00_8",
+      "slot": 3,
+      "venus_type": "hamilton_1_trough_60mL_Vb"
+    },
+    "buffer_aw2": {
+      "factory": "hamilton_1_trough_60mL_Vb",
+      "kind": "container",
+      "carrier": "Trough_CAR_5R60_A00_8",
+      "slot": 2,
+      "venus_type": "hamilton_1_trough_60mL_Vb"
+    },
+    "te_buffer": {
+      "factory": "hamilton_1_trough_60mL_Vb",
+      "kind": "container",
+      "carrier": "Trough_CAR_5R60_A00_8",
+      "slot": 1,
+      "venus_type": "hamilton_1_trough_60mL_Vb"
+    },
+    "lysis_tubes": {
+      "factory": "Cor_96_wellplate_2mL_Vb",
+      "kind": "plate",
+      "carrier": "PLT_CAR_L5MD_9",
+      "slot": 4,
+      "venus_type": "Cor_96_wellplate_2mL_Vb"
+    },
+    "spin_columns": {
+      "factory": "eppendorf_96_wellplate_1000ul_Vb",
+      "kind": "plate",
+      "carrier": "PLT_CAR_L5MD_9",
+      "slot": 3,
+      "venus_type": "eppendorf_96_wellplate_1000ul_Vb"
+    }
+  },
+  "catalog": "plr"
+}

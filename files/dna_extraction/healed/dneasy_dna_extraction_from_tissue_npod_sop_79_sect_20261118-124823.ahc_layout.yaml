@@ -1,0 +1,78 @@
+# AHC layout exported by LLNL Capstone Precheck (pipeline/ahc_export.py) at 2026-11-18T12:48:25.
+# Source: healed/dneasy_dna_extraction_from_tissue_npod_sop_79_sect_20261118-124823.json
+# NOT ON THIS LAYOUT (AHC would not know these are on the deck):
+#   - spin_column_rack (HAM_DWP_96x08mL) on PLT_CAR_L5_DWP_0001 is not labware AHC accepts
+#   - lysis_plate (Rack - RGT 96 Refill) on PLT_CAR_L5_DWP_0001 is not labware AHC accepts
+# AHC'S MODEL DIFFERS FROM VENUS HERE (AHC uses PyLabRobot's definition):
+#   - carrier PLT_CAR_L5_DWP_0001: AHC builds PyLabRobot's PLT_CAR_L5_DWP, which differs from VENUS (position 5 y: PyLabRobot 8.2, VENUS 9 (-0.80 mm), and 9 more)
+#   - Cos_96_PCR_0002: VENUS's Cos_96_PCR goes to AHC as Cor_96_wellplate_360ul_Fb (AHC has no PCR plate, so it gets the 96-well plate AHC has run on this carrier: on a PLT_CAR_L5_DWP its wells are 0.4 mm off in x, their bottom 0.86 mm higher, 10.67 mm deep where VENUS says 20.5, and 360 uL where VENUS says 290)
+#   - Cos_96_PCR_0001: VENUS's Cos_96_PCR goes to AHC as Cor_96_wellplate_360ul_Fb (AHC has no PCR plate, so it gets the 96-well plate AHC has run on this carrier: on a PLT_CAR_L5_DWP its wells are 0.4 mm off in x, their bottom 0.86 mm higher, 10.67 mm deep where VENUS says 20.5, and 360 uL where VENUS says 290)
+#   - buffer_aw1: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - ethanol: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - buffer_al: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - proteinase_k: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - buffer_atl: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - te_buffer: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - buffer_aw2: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+# Load it with load_layout(name=...); the deck check confirms it before anything moves.
+carriers:
+- name: PLT_CAR_L5_DWP_0001
+  type: PLT_CAR_L5_DWP
+  track: 1
+  sites:
+    '1':
+      name: Cos_96_PCR_0002
+      type: Cor_96_wellplate_360ul_Fb
+    '2':
+      name: Cos_96_PCR_0001
+      type: Cor_96_wellplate_360ul_Fb
+- name: TIP_CAR_480_A00_0001
+  type: TIP_CAR_480_A00
+  track: 7
+  sites:
+    '2':
+      name: tips_1000
+      type: hamilton_96_tiprack_1000uL_filter
+    '3':
+      name: STF_L_0002
+      type: hamilton_96_tiprack_300uL_filter
+    '4':
+      name: tips_300
+      type: hamilton_96_tiprack_300uL_filter
+- name: RGT_CAR_5R60_A00_13
+  type: RGT_CAR_5R60_A00
+  track: 13
+  sites:
+    '0':
+      name: buffer_aw1
+      type: hamilton_1_trough_60mL_Vb
+    '1':
+      name: ethanol
+      type: hamilton_1_trough_60mL_Vb
+    '2':
+      name: buffer_al
+      type: hamilton_1_trough_60mL_Vb
+    '3':
+      name: proteinase_k
+      type: hamilton_1_trough_60mL_Vb
+    '4':
+      name: buffer_atl
+      type: hamilton_1_trough_60mL_Vb
+- name: RGT_CAR_5R60_A00_14
+  type: RGT_CAR_5R60_A00
+  track: 14
+  sites:
+    '3':
+      name: te_buffer
+      type: hamilton_1_trough_60mL_Vb
+    '4':
+      name: buffer_aw2
+      type: hamilton_1_trough_60mL_Vb
+liquids:
+  buffer_atl: 2000
+  proteinase_k: 500
+  buffer_al: 2000
+  ethanol: 2000
+  buffer_aw1: 4500
+  buffer_aw2: 4500
+  te_buffer: 1100

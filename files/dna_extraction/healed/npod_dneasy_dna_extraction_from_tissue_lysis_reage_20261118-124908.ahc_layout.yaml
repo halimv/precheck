@@ -1,0 +1,52 @@
+# AHC layout exported by LLNL Capstone Precheck (pipeline/ahc_export.py) at 2026-11-18T12:49:08.
+# Source: healed/npod_dneasy_dna_extraction_from_tissue_lysis_reage_20261118-124908.json
+# NOT ON THIS LAYOUT (AHC would not know these are on the deck):
+#   - carrier SMP_CAR_32_EPIS_A00_14 (SMP_CAR_32_EPIS_A00, rail 14) is not a carrier AHC accepts
+#   - carrier SMP_CAR_32_EPIL_A00_15 (SMP_CAR_32_EPIL_A00, rail 15) is not a carrier AHC accepts
+#   - the 200 uL loaded in proteinase_k has no place in the AHC layout
+# AHC'S MODEL DIFFERS FROM VENUS HERE (AHC uses PyLabRobot's definition):
+#   - carrier PLT_CAR_L5_DWP_0001: AHC builds PyLabRobot's PLT_CAR_L5_DWP, which differs from VENUS (position 5 y: PyLabRobot 8.2, VENUS 9 (-0.80 mm), and 9 more)
+#   - Cos_96_PCR_0002: VENUS's Cos_96_PCR goes to AHC as Cor_96_wellplate_360ul_Fb (AHC has no PCR plate, so it gets the 96-well plate AHC has run on this carrier: on a PLT_CAR_L5_DWP its wells are 0.4 mm off in x, their bottom 0.86 mm higher, 10.67 mm deep where VENUS says 20.5, and 360 uL where VENUS says 290)
+#   - Cos_96_PCR_0001: VENUS's Cos_96_PCR goes to AHC as Cor_96_wellplate_360ul_Fb (AHC has no PCR plate, so it gets the 96-well plate AHC has run on this carrier: on a PLT_CAR_L5_DWP its wells are 0.4 mm off in x, their bottom 0.86 mm higher, 10.67 mm deep where VENUS says 20.5, and 360 uL where VENUS says 290)
+#   - ethanol: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - al_buffer: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+#   - atl_buffer: VENUS's RGT_CONT_50ml_A00 goes to AHC as hamilton_1_trough_60mL_Vb (the same Hamilton trough: AHC's model is 19 x 90 mm and 60 mL, VENUS's 20 x 90 mm and 63 mL in 8 connected positions)
+# Load it with load_layout(name=...); the deck check confirms it before anything moves.
+carriers:
+- name: PLT_CAR_L5_DWP_0001
+  type: PLT_CAR_L5_DWP
+  track: 1
+  sites:
+    '1':
+      name: Cos_96_PCR_0002
+      type: Cor_96_wellplate_360ul_Fb
+    '2':
+      name: Cos_96_PCR_0001
+      type: Cor_96_wellplate_360ul_Fb
+- name: TIP_CAR_480_A00_0001
+  type: TIP_CAR_480_A00
+  track: 7
+  sites:
+    '3':
+      name: tips_small
+      type: hamilton_96_tiprack_300uL_filter
+    '4':
+      name: tips
+      type: hamilton_96_tiprack_300uL_filter
+- name: RGT_CAR_5R60_A00_13
+  type: RGT_CAR_5R60_A00
+  track: 13
+  sites:
+    '2':
+      name: ethanol
+      type: hamilton_1_trough_60mL_Vb
+    '3':
+      name: al_buffer
+      type: hamilton_1_trough_60mL_Vb
+    '4':
+      name: atl_buffer
+      type: hamilton_1_trough_60mL_Vb
+liquids:
+  atl_buffer: 1000
+  al_buffer: 1000
+  ethanol: 1000
