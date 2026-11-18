@@ -2,7 +2,10 @@
 
 Deck construction is fixed config, not model output: stages 2-5 all build the same
 deck from the same file. Starting reagent volumes come from the protocol IR
-(`initial_volumes_ul`), because how much liquid the scientist loads is part of the plan.
+(`initial_volumes_ul`), because how much liquid the scientist loads is part of the plan. A key is a reservoir or
+tube ID (its volume), or plate wells in AHC's target form, each well holding the volume: "stocks:A1:H1" (a run of
+wells in one column or row), "stocks:A1" (one well) or "stocks:col1" (a whole column). Pre-filled wells are how a
+plate column holds one sample per row.
 
 The deck is ground truth from VENUS: a `deck_config` that is a .lay (INSTRUMENT_DECK, the deck on the
 STARlet) is read directly, with every carrier and labware built as config/venus_labware.json says
@@ -24,6 +27,7 @@ from pylabrobot.legacy.machines.machine import Machine
 from pylabrobot.resources import Coordinate
 
 AMBIENT_C = 22.0
+ROWS = "ABCDEFGH"
 ROOT = Path(__file__).resolve().parent.parent
 INSTRUMENT_DECK = "config/instrument/ahc_deck.lay"  # the deck on the STARlet (VENUS); new protocols are drafted on it
 DEFAULT_DECK = INSTRUMENT_DECK  # for protocols that name no deck: the deck on the STARlet
@@ -151,6 +155,27 @@ def _build_machine(machine_id: str, spec: Dict[str, Any]) -> Machine:
                         child_location=Coordinate(x=cx, y=cy, z=cz))
 
 
+def loaded_wells(key: str) -> Optional[Tuple[str, List[Tuple[int, int]]]]:
+    """An `initial_volumes_ul` key that names plate wells -> (plate ID, [(column, row index), ...]); None for a
+    plain labware ID. Forms: "plate:A1", "plate:A1:H1" (a rectangle of wells), "plate:col1"."""
+    import re
+    if ":" not in key:
+        return None
+    lid, _, spec = key.partition(":")
+    m = re.fullmatch(r"col(\d{1,2})", spec, re.IGNORECASE)
+    if m:
+        col = int(m.group(1))
+        return (lid, [(col, r) for r in range(len(ROWS))]) if 1 <= col <= 12 else None
+    m = re.fullmatch(r"([A-H])(\d{1,2})(?::([A-H])(\d{1,2}))?", spec, re.IGNORECASE)
+    if not m:
+        return None
+    r1, c1 = ROWS.index(m.group(1).upper()), int(m.group(2))
+    r2, c2 = (ROWS.index(m.group(3).upper()), int(m.group(4))) if m.group(3) else (r1, c1)
+    if not (1 <= c1 <= 12 and 1 <= c2 <= 12):
+        return None
+    return lid, [(c, r) for c in range(min(c1, c2), max(c1, c2) + 1) for r in range(min(r1, r2), max(r1, r2) + 1)]
+
+
 def build_deck(
     config: Dict[str, Any], initial_volumes_ul: Optional[Dict[str, float]] = None
 ) -> Tuple[plr.Deck, Dict[str, plr.Resource]]:
@@ -188,6 +213,14 @@ def build_deck(
         deck.assign_child_resource(resources[machine_id], rails=spec["rails"])
 
     for labware_id, volume in (initial_volumes_ul or {}).items():
+        wells = loaded_wells(labware_id)
+        if wells is not None:  # plate wells, each holding `volume`
+            plate = resources.get(wells[0])
+            if not isinstance(plate, plr.Plate):
+                raise KeyError(f"initial_volumes_ul names '{labware_id}', but '{wells[0]}' is not a plate on the deck")
+            for col, row in wells[1]:
+                plate.get_item(f"{ROWS[row]}{col}").tracker.set_volume(volume)
+            continue
         container = resources.get(labware_id)
         if not isinstance(container, plr.Container):
             raise KeyError(f"initial_volumes_ul names '{labware_id}', which is not a container on the deck")

@@ -140,8 +140,17 @@ def _labware_item(lid, ls, resource, carrier, n_sites, protocol, reagents, volum
                           f"{'filtered ' if tip.has_filter else ''}tips ({ls['factory']}), A1 at the back left. "
                           f"The run uses column(s) {', '.join(map(str, cols)) or 'none'}. {where}.")
     elif ls["kind"] == "plate":
-        item["title"] = f"Empty plate in {carrier} {where.split(';')[0]}"
-        item["detail"] = f"{lid} ({ls['factory']}), empty, A1 at the back left, lid off. {where}."
+        from pipeline.deck import loaded_wells
+        filled = [(k, v) for k, v in volumes.items() if (loaded_wells(k) or (None,))[0] == lid]
+        if filled:
+            what = reagents.get(lid, "the samples the protocol draws")
+            fills = "; ".join(f"{k.split(':', 1)[1]} with {_ul(v)} each" for k, v in filled)
+            item["title"] = f"Pre-filled plate in {carrier} {where.split(';')[0]}"
+            item["detail"] = (f"{lid} ({ls['factory']}), A1 at the back left, lid off, wells pre-filled: {fills} "
+                              f"({what}). {where}.")
+        else:
+            item["title"] = f"Empty plate in {carrier} {where.split(';')[0]}"
+            item["detail"] = f"{lid} ({ls['factory']}), empty, A1 at the back left, lid off. {where}."
     else:
         vol = volumes.get(lid)
         what = reagents.get(lid, "the reagent the protocol draws from it")

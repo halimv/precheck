@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import pylabrobot.resources as plr
 import yaml
 
-from pipeline.deck import deck_config_for, load_deck_config
+from pipeline.deck import deck_config_for, load_deck_config, loaded_wells
 from pipeline.instrument import load_instrument, real_deck_layout
 from pipeline.venus_layout import deck_config_from_lay, load_venus_map, read_lay
 
@@ -110,7 +110,10 @@ def to_ahc_layout(deck_config: Dict[str, Any], ahc: Dict[str, Any], initial_volu
     placed = {s["name"] for c in carriers for s in c["sites"].values()}
     liquids = {}
     for lid, volume in (initial_volumes_ul or {}).items():
-        if lid in placed:
+        wells = loaded_wells(lid)
+        if wells is not None and wells[0] in placed:  # plate wells: AHC's target form, uL per well, as in Precheck
+            liquids[lid] = volume
+        elif lid in placed:
             liquids[lid] = volume
         else:
             problems.append(f"the {volume:g} uL loaded in {lid} has no place in the AHC layout")

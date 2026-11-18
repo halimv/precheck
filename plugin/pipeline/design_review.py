@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from pipeline.deck import INSTRUMENT_DECK, ROOT, build_deck, deck_config_for
+from pipeline.deck import INSTRUMENT_DECK, ROOT, build_deck, deck_config_for, loaded_wells
 
 from pipeline.labware_limits import labware_limits, load_policy
 
@@ -48,12 +48,31 @@ def _add(mix: Mix, other: Mix) -> None:
         mix[k] = mix.get(k, 0.0) + v
 
 
+def well_reagent(names: Dict[str, str], key: str, lid: str, col: int, row: int) -> str:
+    """The reagent a pre-filled well holds: named under its own key, else under any reagents key whose wells cover
+    it ("plate:A2:H6" covers "plate:A3:H3"), else under the plate."""
+    if key in names:
+        return names[key]
+    for k, label in names.items():
+        w = loaded_wells(k)
+        if w and w[0] == lid and (col, row) in w[1]:
+            return label
+    return names.get(lid, lid)
+
+
 def trace_mixtures(protocol: Dict[str, Any], kinds: Dict[str, str]) -> Tuple[Dict[Any, Mix], Dict[str, float]]:
     """Follow every microliter through the steps. Returns ({container: mixture}, {labware: uL drawn}); a plate's
     containers are (labware, column, row), anything else is its labware name."""
     names = protocol.get("reagents", {})
-    where: Dict[Any, Mix] = {lid: {names.get(lid, lid): float(v)}
-                             for lid, v in (protocol.get("initial_volumes_ul") or {}).items()}
+    where: Dict[Any, Mix] = {}
+    for key, v in (protocol.get("initial_volumes_ul") or {}).items():
+        wells = loaded_wells(key)
+        if wells is None:
+            where[key] = {names.get(key, key): float(v)}
+            continue
+        lid, spots = wells
+        for col, row in spots:  # pre-filled plate wells: each holds v of the reagent named for them
+            where[(lid, col, row)] = {well_reagent(names, key, lid, col, row): float(v)}
     tips: Dict[int, Mix] = {}
     drawn: Dict[str, float] = {}
 
@@ -110,6 +129,16 @@ def review(protocol: Dict[str, Any], deck_config: Dict[str, Any], root: Path = R
 
     reagents = []
     for lid, loaded in (protocol.get("initial_volumes_ul") or {}).items():
+        wells = loaded_wells(lid)
+        if wells is not None:  # pre-filled plate wells: what each well holds, and what the plan draws from them
+            plate, spots = wells
+            names = protocol.get("reagents", {})
+            needed = drawn.get(plate, 0.0)
+            reagents.append({"labware": lid, "reagent": names.get(lid) or names.get(plate, plate),
+                             "loaded_ul": loaded * len(spots), "per_well_ul": loaded, "wells": len(spots),
+                             "drawn_ul": round(needed, 1), "left_ul": round(loaded * len(spots) - needed, 1),
+                             "capacity_ul": None})
+            continue
         needed = drawn.get(lid, 0.0)
         reagents.append({"labware": lid, "reagent": protocol.get("reagents", {}).get(lid, lid), "loaded_ul": loaded,
                          "drawn_ul": round(needed, 1), "left_ul": round(loaded - needed, 1),

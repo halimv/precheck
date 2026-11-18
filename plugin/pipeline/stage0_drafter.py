@@ -37,7 +37,7 @@ from typing import Any, Dict, List, Optional, TextIO
 
 from pipeline import deck_builder
 from pipeline import paths
-from pipeline.deck import INSTRUMENT_DECK, ROOT, build_deck
+from pipeline.deck import INSTRUMENT_DECK, ROOT, build_deck, loaded_wells
 from pipeline.labware_limits import labware_limits
 from pipeline.setup_guide import nominal_tip_ul
 from pipeline.stage2_compiler import ACTIONS, CompilationError, translate_step
@@ -76,7 +76,7 @@ In the library as well: {library}
     "waste": {{"kind": "waste"}}
   }},
   "reagents": {{"<reservoir or tube name>": "what the scientist loads there, e.g. 0.9% saline (sterile)"}},
-  "initial_volumes_ul": {{"<reservoir or tube name>": <uL loaded before the run>}},
+  "initial_volumes_ul": {{"<reservoir or tube name>": <uL loaded before the run>, "<plate>:A1:H1": <uL in EACH of those wells>}},
   "steps": [
     {{"step": 1, "action": "tips_on", "labware": "tips", "column": 1, "volume_ul": 0, "channels": [0,1,2,3,4,5,6,7], "description": "..."}},
     {{"step": 2, "action": "aspirate", "labware": "diluent", "volume_ul": 50, "channels": [0,1,2,3,4,5,6,7], "description": "..."}},
@@ -93,9 +93,12 @@ whole plate column (8 replicate rows).
 - tips_off drops every mounted tip into the waste.
 - Tips may aspirate repeatedly from the same source; use tips_off and fresh tips before aspirating from a \
 different source. Dispensing never changes a tip's source, but aspirating from the well you just dispensed into does, so mix a well before taking liquid out of it, not after filling it: for a serial transfer, mix column k (aspirate and dispense in column k), aspirate the transfer volume from column k, dispense into column k+1, then tips_off. Mix the last column with fresh tips at the end.
-- Keep one aspiration within the tip you ask for. Plate wells start empty; only reservoirs and tubes listed in \
-initial_volumes_ul hold liquid at the start, and a well should keep {well_min:g} uL or more and stay below its \
-capacity.
+- Keep one aspiration within the tip you ask for. Plate wells start empty; only what initial_volumes_ul lists \
+holds liquid at the start: reservoirs and tubes by name, and pre-filled plate wells as "<plate>:A1:H1" (each well \
+holding that volume). A different sample per row goes in a column of a separate source plate, pre-filled this way, so all \
+8 channels draw their own sample at once. Pre-fill only such samples, never the wells the steps dispense into, and \
+never a reagent that is the same for every well (a diluent): that stays in a reservoir and the robot pipettes it. Load at least what is drawn plus {well_min:g} uL per well. A well should \
+keep {well_min:g} uL or more and stay below its capacity.
 - Bench protocols are often written in mL. Keep every ratio and dilution factor, but scale volumes down \
 to fit the plate and tips, and record the scaling in "assumptions".
 - Anything the robot cannot do (plating, counting colonies, incubating outside the deck) stays out of the \
@@ -262,8 +265,13 @@ def structural_errors(plan: Dict[str, Any]) -> List[str]:
         return errors
     kinds = {name: deck_builder.DECK_KIND[need["kind"]] for name, need in needs.items()}
     for lid in plan.get("initial_volumes_ul", {}) or {}:
-        if kinds.get(lid) != "container":
-            errors.append(f"initial_volumes_ul names '{lid}', which is not a reservoir or tube in 'labware'")
+        wells = loaded_wells(lid)
+        if wells is not None:
+            if kinds.get(wells[0]) != "plate":
+                errors.append(f"initial_volumes_ul names wells of '{wells[0]}', which is not a plate in 'labware'")
+        elif kinds.get(lid) != "container":
+            errors.append(f"initial_volumes_ul names '{lid}', which is not a reservoir or tube in 'labware' "
+                          "(or plate wells, as \"plate:A1:H1\")")
     for i, s in enumerate(steps, start=1):
         if not isinstance(s, dict):
             errors.append(f"step {i} is not an object")

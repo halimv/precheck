@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from pipeline import proposals
+from pipeline.deck import loaded_wells
 from pipeline.diagnostics import rejection_kind
 from pipeline.stage2_compiler import ACTIONS, CompilationError, compile_protocol, translate_step
 from pipeline.stage3_simulator import PLRSimulator
@@ -293,9 +294,11 @@ def apply_valid_edits(
         op = edit.get("op")
         if op == "set_initial_volume":
             lid, vol = edit.get("labware"), edit.get("volume_ul")
-            if not isinstance(lid, str) or labware_kinds.get(lid) != "container" \
-                    or not isinstance(vol, (int, float)) or vol < 0:
-                errors.append(f"set_initial_volume needs a container ID from the deck and a volume >= 0, got {edit}.")
+            wells = loaded_wells(lid) if isinstance(lid, str) else None
+            ok_target = (labware_kinds.get(wells[0]) == "plate") if wells else labware_kinds.get(lid) == "container"
+            if not isinstance(lid, str) or not ok_target or not isinstance(vol, (int, float)) or vol < 0:
+                errors.append(f"set_initial_volume needs a container ID from the deck (or plate wells as "
+                              f"\"plate:A1:H1\", uL per well) and a volume >= 0, got {edit}.")
                 continue
             new.setdefault("initial_volumes_ul", {})[lid] = vol
         elif op == "replace_step":
