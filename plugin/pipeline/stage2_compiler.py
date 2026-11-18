@@ -246,7 +246,7 @@ if __name__ == "__main__":
         from pipeline.pipetting import set_manual_handler
 
         # A step the robot cannot do waits here until the operator has done it by hand.
-        set_manual_handler(lambda instruction: input(f"\nMANUAL STEP (the robot waits): {{instruction}}\n"
+        set_manual_handler(lambda instruction: input(f"\\nMANUAL STEP (the robot waits): {{instruction}}\\n"
                                                      "Press Enter once it is done: "))
     asyncio.run(_main(args.backend))
 """

@@ -129,3 +129,15 @@ def test_the_report_lists_manual_steps_as_ahc_asks_for_them():
                        "empties": ["dilution_plate:A1:H1"]}]
     items = review_items(protocol(), [], {"assumptions": [], "wells": []}, [], {})
     assert any(i["area"] == "manual" and "Step 5 is done by hand (about 1 min)" in i["item"] for i in items)
+
+
+def test_the_standalone_script_with_a_manual_step_is_valid_python():
+    """The healed/ script asks the operator at the terminal; its prompt must stay one line of Python source (a newline
+    inside the f-string once broke every script that had a manual step)."""
+    import ast
+
+    from pipeline.stage2_compiler import compile_standalone
+
+    code = compile_standalone(protocol(), DECK, "decks/serial_deck.json", "healed/x_plr.py")
+    ast.parse(code)
+    assert "set_manual_handler" in code
