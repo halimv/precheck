@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TextIO
 
 from pipeline import deck_builder
+from pipeline import fidelity
 from pipeline import paths
 from pipeline.deck import INSTRUMENT_DECK, ROOT, build_deck, loaded_wells
 from pipeline.labware_limits import labware_limits
@@ -68,7 +69,8 @@ In the library as well: {library}
 {{
   "protocol_name": "short name",
   "description": "one or two sentences on what the run does",
-  "assumptions": ["every choice you made that the text did not state, e.g. how volumes were scaled"],
+  "assumptions": ["every choice you made that the text did not state, e.g. which plate holds the samples"],
+  "outside_run": ["<ids of requirements done wholly before or after the run>"],
   "labware": {{
     "tips": {{"kind": "tip_rack", "tip_volume_ul": 300, "filter": true, "description": "what it is for"}},
     "diluent": {{"kind": "reservoir", "min_capacity_ul": 8000, "description": "..."}},
@@ -80,7 +82,7 @@ In the library as well: {library}
   "steps": [
     {{"step": 1, "action": "tips_on", "labware": "tips", "column": 1, "volume_ul": 0, "channels": [0,1,2,3,4,5,6,7], "description": "..."}},
     {{"step": 2, "action": "aspirate", "labware": "diluent", "volume_ul": 50, "channels": [0,1,2,3,4,5,6,7], "description": "..."}},
-    {{"step": 3, "action": "dispense", "labware": "dilution_plate", "column": 2, "volume_ul": 50, "channels": [0,1,2,3,4,5,6,7], "description": "..."}},
+    {{"step": 3, "action": "dispense", "labware": "dilution_plate", "column": 2, "volume_ul": 50, "channels": [0,1,2,3,4,5,6,7], "sop": "R2", "description": "..."}},
     {{"step": 4, "action": "tips_off", "labware": "waste", "volume_ul": 0, "channels": [0,1,2,3,4,5,6,7], "description": "..."}}
   ]
 }}
@@ -99,8 +101,10 @@ holding that volume). A different sample per row goes in a column of a separate 
 8 channels draw their own sample at once. Pre-fill only such samples, never the wells the steps dispense into, and \
 never a reagent that is the same for every well (a diluent): that stays in a reservoir and the robot pipettes it. Load at least what is drawn plus {well_min:g} uL per well. A well should \
 keep {well_min:g} uL or more and stay below its capacity.
-- Bench protocols are often written in mL. Keep every ratio and dilution factor, but scale volumes down \
-to fit the plate and tips, and record the scaling in "assumptions".
+- Use the protocol's volumes exactly; never scale them. Each sample gets what the protocol says it gets. When a \
+volume does not fit, change the hardware, not the experiment: a deep-well plate or tubes that hold it, larger tips, or \
+several aspirate/dispense cycles that add up to it. If the robot cannot do an addition at that volume, it is a manual step \
+that says the volume.
 - A step the robot cannot do but the experiment needs between liquid-handling steps (centrifuge, vortex, \
 incubate or shake off the deck, move labware on or off the deck, add a sample by hand) is a "manual" step, in its \
 place in the order: {{"action": "manual", "labware": "<the labware the operator handles>", "volume_ul": 0, \
@@ -108,9 +112,21 @@ place in the order: {{"action": "manual", "labware": "<the labware the operator 
 "duration_min": <about how long, optional>, "empties": [{{"labware": "<plate>", "column": <c>}}], "description": "..."}}. \
 "empties" lists the plate columns the step leaves empty (a spin column's flow-through that is discarded); leave it out \
 otherwise. Tips must be off before a manual step. The operator is asked to do it and the robot waits, so keep the \
-instruction exact and complete. Work wholly before or after the run (collecting tissue, weighing, reading a \
-spectrophotometer, storage) stays out of the steps; mention it in "assumptions".
+instruction exact and complete, with every number as the protocol writes it.
 {extended}
+# What the protocol requires
+These requirements were read from the protocol, in its order. The plan is checked against them, and a plan that \
+changes any of them is sent back:
+{requirements}
+- Tag every step that carries out a requirement with "sop": "<id>" (a list of ids if one step does several): the \
+dispenses of an addition, the manual or incubate step of anything else. Each addition puts exactly its volume into every \
+sample, from a reservoir or tube whose "reagents" entry names that reagent; no reagent goes into a sample without a tag.
+- The requirements happen in this order. Only the first or last ones may be done wholly before or after the run \
+(weighing tissue, reading a spectrophotometer, storage): list their ids in "outside_run". Every one in between is in the \
+plan, as a manual step if the robot cannot do it.
+- A requirement keeps its numbers (temperatures, times, speeds, g-forces, amounts): write them in the manual \
+instruction as the protocol writes them, or set them on the incubate/shake step.
+
 # Protocol text from the scientist
 <protocol>
 {source}
@@ -136,8 +152,11 @@ The plan below was drafted from this protocol, then repaired until it passed the
 </request>
 
 Revise the current plan to make this change. Keep everything the request does not touch as it is, \
-including repairs already made (for example, steps split per channel). Update "assumptions" if the \
-change affects them. Reply with the whole revised plan as a single JSON object in a ```json block.
+including repairs already made (for example, steps split per channel), and the "sop" tags. Update "assumptions" if the \
+change affects them. If the request changes something a requirement fixes (a volume, a number, or leaving one out), \
+add to "deviations": {{"sop": "<id>", "volume_ul": <new uL per sample> or "values": [{{"value": .., "unit": ".."}}] \
+or "omit": true, "approved": "<the words of the request that ask for it, copied exactly>"}}; keep the deviations already \
+in the plan. Reply with the whole revised plan as a single JSON object in a ```json block.
 """
 
 RETRY = """\
@@ -150,6 +169,41 @@ No real labware was found for these labware needs:
 Change those needs (a size the library has, or another kind, and the steps and volumes that depend on it), \
 record the change in "assumptions", and reply with the whole corrected plan as a single JSON object in a \
 ```json block."""
+
+
+REQUIREMENTS = """\
+Read the lab protocol below and list what the experiment requires, so that a plan for a liquid-handling robot can be \
+checked against it. Do not plan anything and do not adapt anything to a robot: write down what the protocol says.
+
+If the protocol has alternative procedures (for different sample types, say), cover the main one: the first, unless the \
+text says otherwise. Name what you covered and what you left out in "scope".
+
+List, in the order they happen, one requirement per action:
+- "addition": a liquid added to each sample: "what" is the reagent as the protocol names it, and "volume_ul" how much \
+goes into one sample, in uL (180 for "180 ul", 1200 for "1.2 ml"); null when the protocol moves all of a liquid \
+("pipet the mixture into the column").
+- "step": anything else the experiment needs (place or mince tissue, vortex, mix, incubate, centrifuge, discard, \
+transfer the column to a new tube): "what" says it in a few words.
+Give each "values": every number the action must keep, other than an addition's volume (temperatures, times, speeds, \
+g-forces, masses, repeat counts), each as written in the protocol, with its unit: {{"value": 56, "unit": "C"}}, or \
+{{"min": 12, "max": 15, "unit": "mg"}} for a range, {{"min": 6000, "unit": "x g"}} for "at least". Give each the "quote": the sentence of \
+the protocol it comes from, copied word for word, which holds every number you give for it; and the "section" number if \
+the protocol has them.
+
+Reply with a single JSON object in a ```json block:
+{{
+  "scope": {{"covered": "the procedure covered", "left_out": ["each alternative or section left out"]}},
+  "requirements": [
+    {{"id": "R1", "section": "1.2", "kind": "addition", "what": "Buffer ATL", "volume_ul": 180, "values": [], "quote": "Add 180 ul Buffer ATL."}},
+    {{"id": "R2", "section": "1.4", "kind": "step", "what": "incubate until lysed", "volume_ul": null, \
+"values": [{{"value": 56, "unit": "C"}}], "quote": "Incubate at 56C until tissue is completely lysed."}}
+  ]
+}}
+
+<protocol>
+{source}
+</protocol>
+"""
 
 
 class DraftError(RuntimeError):
@@ -240,12 +294,47 @@ def available(base_deck: Dict[str, Any], root: Path = ROOT) -> Dict[str, str]:
     return {"deck": "; ".join(on_deck) or "nothing", "library": library}
 
 
-def build_prompt(source_text: str, base_deck: Dict[str, Any], pdf: Optional[Path] = None) -> str:
+def build_prompt(source_text: str, base_deck: Dict[str, Any], pdf: Optional[Path] = None,
+                 requirements: Optional[List[Dict[str, Any]]] = None) -> str:
     has_devices = bool(base_deck.get("machines"))
     actions = ACTIONS if has_devices else tuple(a for a in ACTIONS if a not in ("empty", "incubate", "shake"))  # manual stays
     source = source_text or f"(The protocol is in the PDF file {pdf.name} in the current directory; read it.)"
+    reqs = (fidelity.prompt_lines(requirements) if requirements else
+            "(None were read. Keep every volume and number of the protocol exactly; steps need no \"sop\" tag.)")
     return PROMPT.format(**available(base_deck), well_min=30, actions=", ".join(actions),
-                         extended=EXTENDED if has_devices else "", source=source)
+                         extended=EXTENDED if has_devices else "", requirements=reqs, source=source)
+
+
+def extract_requirements(src: Dict[str, Any], model: Optional[str] = None, out: TextIO = sys.stdout,
+                         max_attempts: int = 3) -> Dict[str, Any]:
+    """What the protocol requires (pipeline/fidelity.py), read from its text by its own Claude session, which knows
+    nothing of the robot. Each reply is checked against the text (every quote in it, every number in its quote) and
+    sent back until it holds. Returns {"scope", "requirements", "quotes_checked", "cost_usd"}."""
+    prompt = REQUIREMENTS.format(source=src["text"] or f"(The protocol is in the PDF file {src['pdf'].name} in the "
+                                                       "current directory; read it.)")
+    cost, session, errors = 0.0, None, []
+    with tempfile.TemporaryDirectory(prefix="ir_reqs_") as tmp:
+        workdir = Path(tmp)
+        if src.get("pdf"):
+            shutil.copy(src["pdf"], workdir / src["pdf"].name)
+        for attempt in range(1, max_attempts + 1):
+            reply = _call_claude(prompt, workdir, model, bool(src.get("pdf")), out, resume=session)
+            cost += reply["cost_usd"]
+            session = reply["session_id"]
+            try:
+                spec = extract_plan(reply["text"])
+                errors = fidelity.spec_errors(spec, src["text"] or None)
+            except ValueError as e:
+                spec, errors = {}, [str(e)]
+            if not errors:
+                return {"scope": spec.get("scope") or {}, "requirements": spec["requirements"],
+                        "quotes_checked": bool(src["text"]), "cost_usd": cost}
+            out.write(f"\n[requirements] attempt {attempt} not usable: {'; '.join(errors)}\n")
+            if not session:
+                break
+            prompt = ("These requirements do not match the protocol: " + "; ".join(errors) +
+                      "\nReply with the corrected list as a single JSON object in a ```json block.")
+    raise DraftError(f"Could not read the protocol's requirements after {attempt} attempt(s): {'; '.join(errors)}")
 
 
 def extract_plan(reply: str) -> Dict[str, Any]:
@@ -293,8 +382,16 @@ def structural_errors(plan: Dict[str, Any]) -> List[str]:
     return errors[:10]
 
 
-def normalize(plan: Dict[str, Any], source: Dict[str, Any], deck_file: str) -> Dict[str, Any]:
-    """Renumber steps, fill defaults the rest of the pipeline relies on, and keep the source text."""
+def normalize(plan: Dict[str, Any], source: Dict[str, Any], deck_file: str,
+              requirements: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Renumber steps, fill defaults the rest of the pipeline relies on, and keep the source text and the requirements
+    read from it (never the drafter's own copy of them)."""
+    plan.pop("requirements", None)
+    plan.pop("requirements_scope", None)
+    if requirements and requirements.get("requirements"):
+        plan["requirements"] = requirements["requirements"]
+        plan["requirements_scope"] = {**(requirements.get("scope") or {}),
+                                      "quotes_checked": requirements.get("quotes_checked", True)}
     plan.setdefault("initial_volumes_ul", {})
     plan["deck_config"] = deck_file
     for i, s in enumerate(plan["steps"], start=1):
@@ -404,11 +501,23 @@ def _call_claude(prompt: str, workdir: Path, model: Optional[str], allow_read: b
     return result
 
 
+def fidelity_errors(plan: Dict[str, Any], requirements: List[Dict[str, Any]], revisions: List[Dict[str, Any]] = (),
+                    note: str = "") -> List[str]:
+    """What a structurally sound plan changes about the experiment its requirements describe (pipeline/fidelity.py)."""
+    if not requirements:
+        return []
+    kinds = {name: deck_builder.DECK_KIND[need["kind"]] for name, need in plan["labware"].items()}
+    held = {**plan, "requirements": requirements, "revisions": list(revisions)}
+    return fidelity.check(held, kinds, (note,) if note else ())["errors"]
+
+
 def _ask_for_plan(prompt: str, base_deck: Dict[str, Any], model: Optional[str], out: TextIO,
-                  max_attempts: int, pdf: Optional[Path] = None, name: str = "protocol"):
+                  max_attempts: int, pdf: Optional[Path] = None, name: str = "protocol",
+                  requirements: Optional[List[Dict[str, Any]]] = None, revisions: List[Dict[str, Any]] = (),
+                  note: str = ""):
     """Send `prompt` and return (plan, resolution, replies, cost, deck_rounds). A reply that is not valid JSON or
-    does not compile, or whose labware needs do not all resolve to real labware, is sent back to Claude, in the
-    same CLI session, up to `max_attempts` replies in total."""
+    does not compile, that changes what the protocol requires, or whose labware needs do not all resolve to real
+    labware, is sent back to Claude, in the same CLI session, up to `max_attempts` replies in total."""
     replies: List[str] = []
     cost, session, errors, deck_rounds = 0.0, None, [], 0
     with tempfile.TemporaryDirectory(prefix="ir_draft_") as tmp:
@@ -423,11 +532,16 @@ def _ask_for_plan(prompt: str, base_deck: Dict[str, Any], model: Optional[str], 
             try:
                 plan = extract_plan(reply["text"])
                 errors = structural_errors(plan)
+                unfaithful = [] if errors else fidelity_errors(plan, requirements or [], revisions, note)
             except ValueError as e:
-                errors = [str(e)]
+                errors, unfaithful = [str(e)], []
             if errors:
                 out.write(f"\n[draft] attempt {attempt} not usable: {'; '.join(errors)}\n")
                 next_prompt = RETRY.format(errors="; ".join(errors))
+            elif unfaithful:
+                errors = unfaithful
+                out.write(f"\n[fidelity] attempt {attempt} changes the experiment:\n" + "\n".join(f"  - {e}" for e in errors) + "\n")
+                next_prompt = RETRY.format(errors=fidelity.feedback(errors))
             else:
                 resolution = deck_builder.resolve(plan["labware"], base_deck, name=plan.get("protocol_name") or name)
                 if resolution.ok:
@@ -467,7 +581,7 @@ def draft(
     deck_file: str = INSTRUMENT_DECK,
     model: Optional[str] = None,
     out: TextIO = sys.stdout,
-    max_attempts: int = 4,
+    max_attempts: int = 5,
     drafts_dir: Path = DRAFTS,
     decks_dir: Path = DECKS,
     stem: Optional[str] = None,
@@ -477,11 +591,14 @@ def draft(
     src = read_source(source)
     if not src["text"] and not src["pdf"]:
         raise DraftError("The protocol text is empty.")
-    prompt = build_prompt(src["text"], base_deck, src["pdf"])
+    out.write("Reading what the protocol requires (its own Claude session, which knows nothing of the robot)\n")
+    reqs = extract_requirements(src, model, out)
+    out.write(f"\n{len(reqs['requirements'])} requirements:\n{fidelity.prompt_lines(reqs['requirements'])}\n\n")
+    prompt = build_prompt(src["text"], base_deck, src["pdf"], reqs["requirements"])
     plan, resolution, replies, cost, deck_rounds = _ask_for_plan(prompt, base_deck, model, out, max_attempts,
-                                                                 src["pdf"], src["name"])
-    plan = normalize(plan, src, deck_file)
-    return _save(plan, resolution, replies, cost, drafts_dir, decks_dir, stem or _stem(plan), deck_rounds)
+                                                                 src["pdf"], src["name"], reqs["requirements"])
+    plan = normalize(plan, src, deck_file, reqs)
+    return _save(plan, resolution, replies, cost + reqs["cost_usd"], drafts_dir, decks_dir, stem or _stem(plan), deck_rounds)
 
 
 def revision_stem(stem: str) -> str:
@@ -498,7 +615,7 @@ def revise(
     deck_file: str = INSTRUMENT_DECK,
     model: Optional[str] = None,
     out: TextIO = sys.stdout,
-    max_attempts: int = 4,
+    max_attempts: int = 5,
     drafts_dir: Path = DRAFTS,
     decks_dir: Path = DECKS,
     stem: Optional[str] = None,
@@ -510,14 +627,21 @@ def revise(
         raise DraftError("The change request is empty.")
     source = current.get("source") or {"name": current_name, "text": ""}
     history = current.get("revisions", [])
-    plan_only = {k: v for k, v in current.items() if k not in ("source", "revisions", "deck_config")}
+    hidden = ("source", "revisions", "deck_config", "requirements", "requirements_scope")
+    plan_only = {k: v for k, v in current.items() if k not in hidden}
     earlier = "".join(f"\n- {r['note']}" for r in history)
-    prompt = build_prompt(source["text"] or "(Not available; work from the current plan.)", base_deck)
+    requirements = current.get("requirements") or []
+    prompt = build_prompt(source["text"] or "(Not available; work from the current plan.)", base_deck,
+                          requirements=requirements)
     prompt += REVISE.format(
         current=json.dumps(plan_only, indent=1), note=note,
         history=f" Changes the scientist already asked for:{earlier}" if history else "")
     plan, resolution, replies, cost, deck_rounds = _ask_for_plan(prompt, base_deck, model, out, max_attempts,
-                                                                 name=current_name)
-    plan = normalize(plan, source, deck_file)
+                                                                 name=current_name, requirements=requirements,
+                                                                 revisions=history, note=note)
+    scope = dict(current.get("requirements_scope") or {})
+    kept = ({"requirements": requirements, "quotes_checked": scope.pop("quotes_checked", True), "scope": scope}
+            if requirements else None)
+    plan = normalize(plan, source, deck_file, kept)
     plan["revisions"] = history + [{"note": note, "from": current_name}]
     return _save(plan, resolution, replies, cost, drafts_dir, decks_dir, stem or _stem(plan), deck_rounds)

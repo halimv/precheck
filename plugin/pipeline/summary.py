@@ -25,7 +25,7 @@ def _mapping_for(deck_path: Optional[Path]) -> Dict[str, Any]:
 
 def review_items(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], review: Dict[str, Any],
                  suggestions: List[Dict[str, Any]], ahc: Dict[str, Any], deck_path: Optional[Path] = None,
-                 passed: bool = True) -> List[Dict[str, str]]:
+                 passed: bool = True, fidelity: Optional[Dict[str, Any]] = None) -> List[Dict[str, str]]:
     items: List[Dict[str, str]] = []
 
     def add(severity: str, area: str, item: str, detail: str = "") -> None:
@@ -37,6 +37,31 @@ def review_items(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], review:
         add("must", "deck", "Place on the deck before the run", change)
     for problem in ahc.get("not_on_layout", []):
         add("must", "AHC", "AHC cannot load this item", problem)
+    fid = fidelity or {}
+    if fidelity is not None and not fid.get("checked"):
+        add("must", "fidelity", "Not checked against an SOP",
+            "This plan has no requirements read from an SOP, so nothing checked that its volumes and numbers are the "
+            "SOP's. Compare it with the SOP yourself.")
+    elif fid.get("checked"):
+        rows = fid.get("requirements", [])
+        scope = fid.get("scope") or {}
+        left = "; ".join(scope.get("left_out") or [])
+        add("check", "fidelity", f"Held to {len(rows)} requirements read from the SOP"
+            + (f" ({scope['covered']})" if scope.get("covered") else ""),
+            "Every volume and number below is the SOP's. Confirm none is missing." + (f" Left out: {left}." if left else "")
+            + ("" if scope.get("quotes_checked", True) else " The SOP is a scan: its quotes could not be checked."))
+        for r in rows:
+            if r.get("deviation"):
+                d = r["deviation"]
+                change = ("left out" if d.get("omit") else f"{d['volume_ul']:g} uL per sample" if "volume_ul" in d
+                          else "values " + ", ".join(str(v.get("value", f"{v.get('min')}-{v.get('max')}")) + f" {v.get('unit', '')}"
+                                             for v in d.get("values", [])))
+                add("must", "fidelity", f"{r['requirement']}: changed to {change}", f"You asked: \"{d.get('approved')}\"")
+            elif r.get("how") == "before or after the run, by hand":
+                add("check", "fidelity", f"{r['requirement']}: done before or after the run, not in the plan", r.get("quote", ""))
+            elif r.get("kind") == "step" and r.get("how") == "on the robot":
+                add("check", "fidelity", f"{r['requirement']}: done on the robot (steps {_span(r['steps'])})",
+                    f"The SOP says: \"{r.get('quote')}\". Confirm the robot's way does the same.")
     for s in protocol.get("steps", []):
         if s.get("action") == "manual":
             took = f" (about {s['duration_min']:g} min)" if isinstance(s.get("duration_min"), (int, float)) else ""
@@ -61,6 +86,11 @@ def review_items(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], review:
     return items
 
 
+def _span(steps: List[Any]) -> str:
+    nums = [n for n in steps if isinstance(n, int)]
+    return f"{min(nums)}-{max(nums)}" if len(nums) > 1 else ", ".join(map(str, steps))
+
+
 def _table(rows: List[List[str]], head: List[str]) -> List[str]:
     if not rows:
         return ["_none_", ""]
@@ -70,7 +100,8 @@ def _table(rows: List[List[str]], head: List[str]) -> List[str]:
 
 
 def markdown(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], tiers: List[Dict[str, Any]], review: Dict[str, Any],
-             items: List[Dict[str, str]], files: Dict[str, str], passed: bool) -> str:
+             items: List[Dict[str, str]], files: Dict[str, str], passed: bool,
+             fidelity: Optional[Dict[str, Any]] = None) -> str:
     head = "PASSED: ready for AHC" if passed else "NOT READY: did not pass the simulator"
     name = protocol.get("protocol_name") or "protocol"
     lines = [f"# {name}", "", f"**{head}**", ""]
@@ -88,6 +119,14 @@ def markdown(protocol: Dict[str, Any], rounds: List[Dict[str, Any]], tiers: List
     lines += ["", "## Needs human review", ""]
     lines += _table([[i["severity"], i["area"], i["item"], i["detail"]] for i in items],
                     ["Severity", "Area", "Item", "Detail"])
+    if (fidelity or {}).get("checked"):
+        lines += ["## What the SOP requires", "",
+                  f"Each requirement was read from the SOP, and the plan was checked against it: the volumes are the "
+                  f"SOP's, for each of {fidelity.get('samples') or 'the'} sample(s).", ""]
+        lines += _table([[r["requirement"], r.get("how", ""), _span(r.get("steps", [])),
+                          ", ".join(f"{v:g}" for v in r.get("per_sample_ul", [])), "; ".join(r.get("from", [])),
+                          " ".join(str(r.get("quote", "")).split())] for r in fidelity.get("requirements", [])],
+                        ["Requirement", "How", "Steps", "uL per sample", "From", "SOP"])
     lines += ["## Labware and deck", ""]
     lines += _table([[l["name"], l["type"], l["where"], l.get("holds") or ""] for l in review.get("labware", [])],
                     ["Name", "Type", "Where", "Holds"])

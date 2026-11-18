@@ -1,6 +1,7 @@
 """What the command line (pipeline.py), the demo server and the Claude skill all do with a protocol that passed:
 write it to healed/, review it, and hand it on.
 
+Nothing is written unless the protocol passes the simulator and does what its SOP requires (pipeline/fidelity.py).
 A passing protocol leaves these in healed/:
     <stem>.json             the IR that passed compile and simulate on the instrument's model
     <stem>_plr.py           the same protocol as a standalone PyLabRobot script
@@ -13,7 +14,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pipeline import summary
+from pipeline import fidelity, summary
 from pipeline.ahc_export import load_ahc_types, to_ahc_layout, write_layout
 from pipeline.deck import DEFAULT_DECK
 from pipeline.design_review import review, suggestions
@@ -38,6 +39,14 @@ def next_stem(stem: str, healed: Path = HEALED) -> str:
     return stem
 
 
+class NotFaithful(ValueError):
+    """The protocol passes the simulator but changes what its SOP requires, so it is not written to healed/."""
+
+    def __init__(self, errors: List[str]):
+        super().__init__(fidelity.feedback(errors))
+        self.errors = errors
+
+
 class NotPassing(ValueError):
     """The protocol does not pass the gate, so it is not written to healed/."""
 
@@ -58,6 +67,9 @@ def finish(protocol: Dict[str, Any], deck_config: Dict[str, Any], stem: str, rou
     gate = SelfHealer(deck_config=deck_config, work_dir=str(paths.BUILD / "gate" / stem)).evaluate(protocol, 0)
     if not gate.passed:
         raise NotPassing(gate)
+    faithful = fidelity.check(protocol, {lid: spec["kind"] for lid, spec in deck_config["labware"].items()})
+    if faithful["errors"]:
+        raise NotFaithful(faithful["errors"])
     healed.mkdir(exist_ok=True)
     ir_path, plr_path = healed / f"{stem}.json", healed / f"{stem}_plr.py"
     ir_path.write_text(json.dumps(protocol, indent=2))
@@ -88,12 +100,15 @@ def finish(protocol: Dict[str, Any], deck_config: Dict[str, Any], stem: str, rou
         "suggestions": suggestions(protocol, deck_config),
         "ahc": {"accepted_types_from": ahc.get("source"), "not_on_layout": problems, "differs_from_venus": warnings},
         "manual_steps": manual_steps(protocol),
+        "fidelity": {**{k: v for k, v in faithful.items() if k != "errors"},
+                     "scope": protocol.get("requirements_scope"), "outside_run": protocol.get("outside_run") or []},
     }
     report["needs_review"] = summary.review_items(protocol, rounds, report["review"], report["suggestions"], report["ahc"],
-                                                  deck_path=deck_path, passed=True)
+                                                  deck_path=deck_path, passed=True, fidelity=report["fidelity"])
     summary_path = healed / f"{stem}_summary.md"
     summary_path.write_text(summary.markdown(protocol, rounds, tiers or [], report["review"], report["needs_review"],
-                                             {**report["files"], "simulated_on": simulated_on}, passed=True))
+                                             {**report["files"], "simulated_on": simulated_on}, passed=True,
+                                             fidelity=report["fidelity"]))
     (healed / f"{stem}_report.json").write_text(json.dumps(report, indent=2))
     return report
 

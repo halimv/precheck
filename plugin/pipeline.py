@@ -9,7 +9,12 @@ Inputs: the protocol (a PDF, a text file, or the text itself) and the lab's grou
 instrument file (firmware configuration, VENUS's deck template, the layout of the deck now) and VENUS's
 labware library. Other ground truth: --instrument, --labware, --deck.
 
-  1. Draft      Claude writes the protocol IR and names the labware it needs by role (drafts/).
+  0. Require    Claude, in a session that knows nothing of the robot, lists what the protocol requires: each
+                liquid added per sample and how much, each other step with its numbers, each with the sentence
+                it comes from (checked against the text).
+  1. Draft      Claude writes the protocol IR and names the labware it needs by role (drafts/). The IR is held
+                to the requirements (pipeline/fidelity.py): the SOP's volumes, never scaled, its numbers and
+                its order; a draft that changes them goes back to Claude.
   2. Deck       The needs become real labware from VENUS's library, placed on the deck that is on the
                 instrument; what nothing fits goes back to Claude (decks/).
   3. Check      The IR is compiled to PyLabRobot and run on PyLabRobot's STAR model configured as this
@@ -21,7 +26,8 @@ labware library. Other ground truth: --instrument, --labware, --deck.
                 at what dilution, dead-volume and fill limits) plus suggestions: improvements, not errors.
   6. Watch      The whole assay replayed in PyLabRobot's 3D viewer. Then: any improvements? A change in
                 words, or a suggestion's number, goes back through 1-5 as the next version (_r2, _r3, ...).
-  7. Hand-off   healed/<name>.json, its standalone PyLabRobot script, and the same deck as an AHC layout.
+  7. Hand-off   Only a protocol that passes the simulator and still does what the SOP requires is written:
+                healed/<name>.json, its standalone PyLabRobot script, and the same deck as an AHC layout.
                 Precheck alone can run it (demo/server.py -> Execute); AHC adds supervision on site: error
                 recovery, and catching a deck or instrument that is not what the files say.
 
@@ -43,7 +49,7 @@ from pipeline import diagnostics, proposals
 from pipeline.deck import DeckError, deck_config_for, load_deck_config
 from pipeline.design_review import render
 from pipeline import runs, summary
-from pipeline.flow import NotPassing, finish, next_stem, result_summary
+from pipeline.flow import NotFaithful, NotPassing, finish, next_stem, result_summary
 from pipeline.instrument import InstrumentError, load_instrument
 from pipeline.instrument import use as use_ground_truth
 from pipeline.self_heal import CLAUDE_LADDER, CLAUDE_MODEL, SelfHealer, heal_with_ladder, ir_diff
@@ -305,7 +311,7 @@ def main():
         try:
             report = finish(passing, deck_config, stem, rounds, status=result.status if args.heal else "PASSED",
                             tiers=tiers if args.heal else [])
-        except NotPassing as e:  # the gate says no: nothing is written
+        except (NotPassing, NotFaithful) as e:  # the gate says no: nothing is written
             sys.exit(f"\n{e}")
         run_dir = runs.record(
             stem, _source(args, protocol_file), passing,

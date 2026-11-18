@@ -43,6 +43,7 @@ STEP_SCHEMA = {
         "empties": {"type": "array", "items": {"type": "object", "properties": {
             "labware": {"type": "string"}, "column": {"type": "integer"},
             "channels": {"type": "array", "items": {"type": "integer"}}}}},
+        "sop": {"anyOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]},
         "description": {"type": "string"},
     },
     "required": ["action", "labware", "volume_ul", "channels", "description"],
@@ -123,6 +124,12 @@ incubate off deck, move labware), with an "instruction" and optional "empties" (
 such as a spin column's discarded flow-through). Tips must be off before one. Repairs must keep every manual step \
 exactly as it is (same instruction, same order), and every plate well must hold the same volume and reagents when each \
 manual step comes as in the plan: never move a transfer across a manual step.
+"""
+
+# Appended for protocols drafted against an SOP's requirements (pipeline/fidelity.py).
+FIDELITY_PROMPT = """
+Steps may carry "sop": the SOP requirement they carry out. Keep it on every step that replaces one carrying it. The \
+SOP's volumes are fixed: never scale a volume to make it fit; split it into several transfers that add up to it instead.
 """
 
 # Appended to SYSTEM_PROMPT only for protocols that use these actions, so prompts for
@@ -283,7 +290,7 @@ class HealResult:
 
 def _step_lines(protocol: Dict[str, Any]) -> List[str]:
     keys = ("step", "action", "labware", "column", "volume_ul", "channels", "duration_s", "temperature_c", "speed_rpm",
-            "instruction", "duration_min", "empties")
+            "instruction", "duration_min", "empties", "sop")
     return [json.dumps({k: s[k] for k in keys if k in s}) for s in protocol["steps"]]
 
 
@@ -328,8 +335,11 @@ def apply_valid_edits(
                 errors.append(f"Step {n} is replaced twice; combine those edits into one.")
                 continue
             steps, step_errors = [], []
+            replaced = new["steps"][by_number[n]]
             for k, s in enumerate(edit.get("new_steps", []), start=1):
                 step = {key: v for key, v in s.items() if key != "step"}
+                if "sop" in replaced and "sop" not in step and step.get("action") == replaced.get("action"):
+                    step["sop"] = replaced["sop"]  # a split step still carries out the SOP requirement it did
                 # Each replacement step must be translatable on its own (known labware, required fields).
                 try:
                     translate_step({**step, "step": f"{n} (new step {k})"}, labware_kinds)
@@ -592,6 +602,8 @@ class SelfHealer:
             system += EXTENDED_PROMPT
         if any(s.get("action") == "manual" for s in protocol["steps"]):
             system += MANUAL_PROMPT
+        if any("sop" in s for s in protocol["steps"]):
+            system += FIDELITY_PROMPT
 
         for round_num in range(max_rounds + 1):
             gate = self.evaluate(current, round_num)

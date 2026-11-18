@@ -137,9 +137,11 @@ def test_the_drafter_sends_unresolved_needs_back_to_claude(tmp_path, monkeypatch
             "initial_volumes_ul": {"saline": 5000}, "steps": [
                 {"action": "tips_on", "labware": "tips", "column": 1, "volume_ul": 0, "channels": [0]},
                 {"action": "aspirate", "labware": "saline", "volume_ul": 90, "channels": [0]},
-                {"action": "dispense", "labware": "dilution_plate", "column": 1, "volume_ul": 90, "channels": [0]},
+                {"action": "dispense", "labware": "dilution_plate", "column": 1, "volume_ul": 90, "channels": [0], "sop": "R1"},
                 {"action": "tips_off", "labware": "waste", "volume_ul": 0, "channels": [0]}]}
     fixed = {**plan, "labware": SERIAL_DILUTION}
+    reqs = {"requirements": [{"id": "R1", "kind": "step", "what": "serially dilute the culture in saline", "values": [],
+                              "quote": "Serially dilute the culture 1:10 in saline."}]}
     prompts = tmp_path / "prompts.jsonl"
     fake = tmp_path / "claude"
     fake.write_text(f"""#!{sys.executable}
@@ -147,6 +149,8 @@ import json, sys
 prompt = sys.stdin.read()
 open({str(prompts)!r}, "a").write(json.dumps(prompt) + "\\n")
 plan = {json.dumps(fixed)!r} if "No real labware was found" in prompt else {json.dumps(plan)!r}
+if "list what the experiment requires" in prompt:
+    plan = {json.dumps(reqs)!r}
 print(json.dumps({{"type": "result", "is_error": False, "result": "```json\\n" + plan + "\\n```", "session_id": "s"}}))
 """)
     fake.chmod(0o755)
@@ -155,9 +159,12 @@ print(json.dumps({{"type": "result", "is_error": False, "result": "```json\\n" +
     d = drafter.draft("Serially dilute the culture 1:10 in saline.", base(), out=io.StringIO(),
                       drafts_dir=tmp_path / "drafts", decks_dir=tmp_path / "decks", stem="dilution")
     sent = [json.loads(line) for line in prompts.read_text().splitlines()]
-    assert len(sent) == 2 and d.deck_rounds == 1
-    assert "On the deck now" in sent[0] and "rack of 96 300 uL tips with filter" in sent[0]
-    assert "culture: no tube in the library fits at least 500000 uL" in sent[1]
+    assert len(sent) == 3 and d.deck_rounds == 1
+    assert "list what the experiment requires" in sent[0] and "On the deck now" not in sent[0]  # it knows no robot
+    assert "On the deck now" in sent[1] and "rack of 96 300 uL tips with filter" in sent[1]
+    assert "R1 serially dilute the culture in saline" in sent[1]
+    assert "culture: no tube in the library fits at least 500000 uL" in sent[2]
+    assert d.protocol["requirements"] == reqs["requirements"]
     assert d.protocol["deck_config"] == str(d.deck_path) and d.deck_path == tmp_path / "decks" / "dilution.json"
     mapping = json.loads(d.mapping_path.read_text())
     assert mapping["labware"]["culture"]["action"] == "add_carrier"

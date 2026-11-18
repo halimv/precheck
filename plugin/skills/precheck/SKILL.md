@@ -35,8 +35,11 @@ precheck "<path to a PDF or text file, or the protocol text itself>" --yes
 
 - Takes several minutes (drafting, then up to 5 repair rounds with Claude Haiku, then Sonnet and Opus if Haiku runs
   out). Give the command a 20 minute timeout.
-- Pass the scientist's text as they wrote it. Do not rewrite, summarise or add steps to it first: the drafter
-  records every assumption it has to make, and the scientist reviews those.
+- Pass the scientist's text as they wrote it. Do not rewrite, summarise or add steps to it first: precheck reads
+  the requirements from it (every volume and number the experiment needs) and holds the plan to them, and the
+  drafter records every other assumption it has to make for the scientist to review.
+- precheck never scales the SOP's volumes. Precheck keeps the experiment as written; AHC keeps the hardware honest.
+  When a volume does not fit, the plan uses larger labware, several dispenses that add up to it, or a manual step.
 - Ground truth defaults to the lab's files in `config/`. Only when the scientist names others:
   `--instrument <file>`, `--labware <VENUS Labware folder>`, `--deck <.lay>`.
 - `--model <name>` runs one model only; `--healer ollama` uses a local model.
@@ -47,6 +50,8 @@ The output ends with the result. There are two outcomes:
 
 - **PASSED: ready for AHC.** The last line names the report: `Report (review, suggestions, files): <path>_report.json`.
   Read that file; it holds everything in step 2.
+- **Not written: the plan does not do what the SOP says.** It passed the simulator but lost an SOP volume or number.
+  Nothing was written to `healed/`; show the scientist the listed differences.
 - **NOT READY: did not pass the simulator.** Nothing was written to `healed/`. Show the scientist the summary
   (which models were tried, how many rounds, the final failure) and ask what to change. Never edit a protocol file
   by hand to make it pass, and never present a protocol that did not pass as ready.
@@ -56,17 +61,23 @@ The output ends with the result. There are two outcomes:
 From the report, briefly and in this order:
 
 1. **Result**: passed, the repair rounds and models used, how many steps, and `simulated_on`.
-2. **Assumptions** (`review.assumptions`): every one. These are choices the drafter made that the text did not settle
-   (volumes, number of dilutions, which container).
-3. **Design parameters**: a table from `review.wells` (plate, column, final volume, contents with each dilution) and
+2. **The SOP's requirements** (`fidelity`): a table of `fidelity.requirements` (requirement, how it is done, steps,
+   uL per sample, the SOP's sentence), with `fidelity.scope` (what part of the SOP was covered and what was left
+   out). Ask the scientist to confirm none is missing: the list was read from their text by a model. Any requirement
+   done on the robot in another way than the SOP says (pipette mixing for vortexing), done outside the run, or changed
+   at their request (`deviation`) is in `needs_review`. An SOP quantity changes only when the scientist asks for it
+   with a revision; never propose scaling one yourself.
+3. **Assumptions** (`review.assumptions`): every one. These are choices the drafter made that the text did not settle
+   (number of samples, which container).
+4. **Design parameters**: a table from `review.wells` (plate, column, final volume, contents with each dilution) and
    one from `review.reagents` (load, drawn, left over, capacity). Mention any `flags`.
-4. **Labware and deck** (`review.labware`): what was chosen and where it sits, and anything the operator has to place
+5. **Labware and deck** (`review.labware`): what was chosen and where it sits, and anything the operator has to place
    before the run.
-5. **Manual steps** (`manual_steps`): the steps the operator does by hand because the robot cannot (centrifuge,
+6. **Manual steps** (`manual_steps`): the steps the operator does by hand because the robot cannot (centrifuge,
    vortex, incubate off deck), each with its instruction, labware, time and the wells it empties. Ask the scientist
    to check each instruction: the robot waits for it during the run, so it must be exact.
-6. **Suggestions** (`suggestions`): numbered, title then detail. They are improvements, not errors.
-7. **AHC** (`ahc`): whether the whole deck is on the AHC layout (`not_on_layout` empty), and where AHC's labware model
+7. **Suggestions** (`suggestions`): numbered, title then detail. They are improvements, not errors.
+8. **AHC** (`ahc`): whether the whole deck is on the AHC layout (`not_on_layout` empty), and where AHC's labware model
    differs from VENUS (`differs_from_venus`).
 
 To let them watch the assay in PyLabRobot's 3D viewer, run it in the background and give them the address it prints:
