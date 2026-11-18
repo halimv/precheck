@@ -47,3 +47,20 @@ def test_the_api_serves_no_reference_labware(path):
         assert name not in body, name
 
 
+
+
+def test_a_draft_in_a_working_folder_outside_the_plugin_is_summarised(tmp_path, monkeypatch):
+    """The working folder is usually not inside the plugin (PRECHECK_WORKDIR is the person's task folder), so the
+    pages show run files relative to the working folder, never relative to the plugin."""
+    from types import SimpleNamespace
+
+    import demo.server as server
+    from pipeline import paths
+
+    monkeypatch.setattr(paths, "WORK", tmp_path)
+    draft_file = tmp_path / "drafts" / "dna_extraction.json"
+    draft_file.parent.mkdir()
+    draft_file.write_text("{}")
+    d = SimpleNamespace(path=draft_file, mapping_path=None, attempts=1, cost_usd=0.0,
+                        protocol={"protocol_name": "dna_extraction", "steps": []})
+    assert server._draft_summary(d)["file"] == "drafts/dna_extraction.json"

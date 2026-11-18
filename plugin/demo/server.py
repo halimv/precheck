@@ -105,7 +105,7 @@ def _instrument_deck_file() -> str:
 def _draft_summary(d) -> Dict[str, Any]:
     mapping = json.loads(d.mapping_path.read_text()) if d.mapping_path else {"labware": {}, "operator_changes": []}
     return {
-        "file": str(d.path.relative_to(ROOT)), "attempts": d.attempts, "cost_usd": round(d.cost_usd, 4),
+        "file": paths.in_work(d.path), "attempts": d.attempts, "cost_usd": round(d.cost_usd, 4),
         "protocol_name": d.protocol.get("protocol_name"), "step_count": len(d.protocol["steps"]),
         "assumptions": d.protocol.get("assumptions", []),
         "labware": [{"name": name, "type": m.get("venus_type") or "tip waste", "action": m["action"].replace("_", " "),
@@ -444,7 +444,7 @@ def healed_setup(name: str):
         "protocol": protocol,
         "gate": gate,
         "setup": setup,
-        "script": str((HEALED / f"{path.stem}_plr.py").relative_to(ROOT)),
+        "script": paths.in_work(HEALED / f"{path.stem}_plr.py"),
         "deck_file": protocol.get("deck_config", DEFAULT_DECK),
         "real_deck": _real_deck_view(protocol, deck_config),
         "instrument_layout": _instrument_layout_id(deck_config),
